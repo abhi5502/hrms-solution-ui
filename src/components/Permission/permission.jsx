@@ -15,7 +15,20 @@ const PermissionsSkeleton = () => (
     </div>
 
     <div className="permissions-list">
-      <h5>Permission-List</h5>
+      <div className="permission-list-header">
+        <h5>Permission-List</h5>
+        <div className="search-container">
+          <div className="search-box">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search by permission name..."
+              disabled
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="table-wrapper">
         <div className="skeleton-table">
           <div className="skeleton-table-header">
@@ -331,30 +344,31 @@ export const Permission = () => {
       </div>
 
       <div className="permissions-list">
-        <h5>Permission-List</h5>
-
-        {/* Search Box */}
-        <div className="search-container">
-          <div className="search-box">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by permission name..."
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            {searchTerm && (
-              <button className="clear-search-btn" onClick={clearSearch}>
-                ×
-              </button>
-            )}
-          </div>
-          {searchTerm && (
-            <div className="search-results-info">
-              {getFilteredPermissions().length} permission(s) found
+        <div className="permission-list-header">
+          <h5>Permission-List</h5>
+          <div className="search-container">
+            <div className="search-box">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search by permission name..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+              {searchTerm && (
+                <button className="clear-search-btn" onClick={clearSearch}>
+                  ×
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
+
+        {searchTerm && (
+          <div className="search-results-info">
+            {getFilteredPermissions().length} permission(s) found
+          </div>
+        )}
 
         <div
           className={`table-wrapper ${

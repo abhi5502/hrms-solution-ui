@@ -1,12 +1,14 @@
 .permission-container {
   padding: 20px;
-  background-color: #281e24;
+  background-color: #281e24 !important;
   min-height: 100vh;
-  color: white;
+  color: white !important;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .permission-container h1 {
-  color: white;
+  color: white !important;
   font-size: 28px;
   margin-bottom: 20px;
   /* Remove duplicate border - handled by page-header */
@@ -20,12 +22,132 @@
   margin-bottom: 30px;
   padding-bottom: 15px;
   border-bottom: 1px solid #444;
+  gap: 15px;
 }
 
 .page-header h1 {
   margin: 0;
   color: white;
   font-size: 28px;
+  flex: 1;
+}
+
+/* Mobile Responsive for Page Header */
+@media (max-width: 768px) {
+  .permission-container {
+    padding: 15px !important;
+    background-color: #281e24 !important;
+    min-height: 100vh;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+    color: white !important;
+  }
+  
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .permission-container {
+    padding: 10px !important;
+    background-color: #281e24 !important;
+    min-height: 100vh;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+    color: white !important;
+  }
+}
+
+/* Force dark theme on mobile devices */
+@media screen and (max-width: 768px) {
+  * {
+    background-color: #281e24 !important;
+    color: white !important;
+  }
+  
+  .App {
+    background-color: #281e24 !important;
+  }
+  
+  .app-body {
+    background-color: #281e24 !important;
+  }
+  
+  .main-content {
+    background-color: #281e24 !important;
+  }
+}
+
+/* Webkit mobile fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  html {
+    background-color: #281e24 !important;
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+  
+  body {
+    background-color: #281e24 !important;
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+}
+
+/* Critical mobile background fix - highest priority */
+@media only screen and (max-width: 768px) {
+  html {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  body {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  #root {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  .App {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  .permission-container {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  @media only screen and (max-width: 768px) {
+    html {
+      background: #281e24 !important;
+      background-size: cover;
+      -webkit-background-size: cover;
+    }
+    
+    body {
+      background: #281e24 !important;
+      background-size: cover;
+      -webkit-background-size: cover;
+    }
+  }
 }
 
 /* Loading and Error States */
@@ -155,6 +277,66 @@
   text-align: center;
 }
 
+/* Mobile Responsive for Skeleton Loader */
+@media (max-width: 768px) {
+  .skeleton-row {
+    padding: 12px;
+    gap: 15px;
+  }
+  
+  .skeleton-cell.name {
+    width: 150px;
+  }
+  
+  .skeleton-cell.action {
+    width: 80px;
+  }
+  
+  .skeleton-cell.actions {
+    width: 100px;
+    height: 28px;
+  }
+  
+  .skeleton-table-header {
+    padding: 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-row {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .skeleton-cell.serial {
+    width: 30px;
+  }
+  
+  .skeleton-cell.name {
+    width: 120px;
+  }
+  
+  .skeleton-cell.action {
+    width: 60px;
+  }
+  
+  .skeleton-cell.status {
+    width: 60px;
+    height: 20px;
+  }
+  
+  .skeleton-cell.actions {
+    width: 80px;
+    height: 24px;
+  }
+  
+  .skeleton-table-header {
+    padding: 10px;
+    font-size: 10px;
+  }
+}
+
 /* Loading Overlay for Operations */
 .table-loading-overlay {
   position: relative;
@@ -208,6 +390,25 @@
   scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
 }
 
+/* Mobile Responsive for Permissions List */
+@media (max-width: 768px) {
+  .permissions-list {
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .permissions-list {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    max-height: 400px;
+  }
+}
+
 .permissions-list::before {
   content: '';
   position: absolute;
@@ -228,16 +429,6 @@
   z-index: 1;
 }
 
-.permissions-list h5 {
-  color: white;
-  font-size: 18px;
-  margin-bottom: 20px;
-  margin-top: 0;
-  font-weight: 600;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgb(193 201 215);
-}
-
 /* Table Styles */
 .permissions-table {
   width: 100%;
@@ -246,6 +437,7 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  min-width: 600px;
 }
 
 .permissions-table th,
@@ -273,6 +465,39 @@
   border-bottom: none;
 }
 
+/* Mobile Responsive for Table */
+@media (max-width: 768px) {
+  .permissions-table {
+    min-width: 500px;
+  }
+  
+  .permissions-table th,
+  .permissions-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .permissions-table th {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .permissions-table {
+    min-width: 400px;
+  }
+  
+  .permissions-table th,
+  .permissions-table td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  
+  .permissions-table th {
+    font-size: 10px;
+  }
+}
+
 .serial-no {
   width: 60px;
   text-align: center;
@@ -284,6 +509,7 @@
   font-weight: 500;
   color: #fff;
   font-size: 14px;
+  min-width: 150px;
 }
 
 .permission-action {
@@ -292,6 +518,40 @@
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  min-width: 80px;
+}
+
+/* Mobile Responsive for Table Cells */
+@media (max-width: 768px) {
+  .serial-no {
+    width: 40px;
+  }
+  
+  .permission-name {
+    font-size: 13px;
+    min-width: 120px;
+  }
+  
+  .permission-action {
+    font-size: 12px;
+    min-width: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .serial-no {
+    width: 30px;
+  }
+  
+  .permission-name {
+    font-size: 12px;
+    min-width: 100px;
+  }
+  
+  .permission-action {
+    font-size: 11px;
+    min-width: 60px;
+  }
 }
 
 /* Status Styles */
@@ -304,6 +564,7 @@
   text-transform: uppercase;
   transition: none !important;
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .status.active {
@@ -316,6 +577,21 @@
   background-color: #f8d7da !important;
   color: #721c24 !important;
   border: 1px solid #f5c6cb !important;
+}
+
+/* Mobile Responsive for Status */
+@media (max-width: 768px) {
+  .status {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
 }
 
 /* Explicitly prevent ALL hover effects on status badges */
@@ -355,10 +631,12 @@
   white-space: nowrap;
   padding: 15px;
   vertical-align: middle;
+  min-width: 100px;
 }
 
 .permissions-table th:last-child {
   text-align: center;
+  min-width: 100px;
 }
 
 .btn-view,
@@ -379,8 +657,9 @@
   outline: none !important;
   box-shadow: none !important;
   text-decoration: none !important;
+  min-width: 24px;
+  height: 24px;
 }
-
 
 .btn-view {
   margin-right: 4px !important;
@@ -394,6 +673,45 @@
 .btn-delete {
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* Mobile Responsive for Action Buttons */
+@media (max-width: 768px) {
+  .permissions-table td:last-child {
+    padding: 12px 8px;
+    min-width: 80px;
+  }
+  
+  .permissions-table th:last-child {
+    min-width: 80px;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    font-size: 12px;
+    min-width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .permissions-table td:last-child {
+    padding: 10px 6px;
+    min-width: 70px;
+  }
+  
+  .permissions-table th:last-child {
+    min-width: 70px;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+  }
 }
 
 .btn-view:hover,
@@ -502,6 +820,35 @@
 .table-wrapper {
   overflow-x: auto;
   margin: 0 -5px; /* Compensate for internal padding */
+  border-radius: 8px;
+}
+
+/* Mobile Responsive for Table Wrapper */
+@media (max-width: 768px) {
+  .table-wrapper {
+    margin: 0 -10px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-wrapper {
+    margin: 0 -15px;
+    border-radius: 4px;
+  }
+  
+  .table-wrapper::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .table-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.6);
+    border-radius: 2px;
+  }
 }
 
 /* Sorting Styles */
@@ -611,15 +958,18 @@
     flex-direction: column;
     gap: 15px;
     align-items: center;
+    padding: 10px 0;
   }
   
   .pagination-info {
     text-align: center;
+    font-size: 12px;
   }
   
   .pagination {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 8px;
   }
   
   .pagination-btn {
@@ -635,6 +985,37 @@
   }
 }
 
+@media (max-width: 480px) {
+  .pagination-container {
+    gap: 10px;
+    padding: 8px 0;
+  }
+  
+  .pagination-info {
+    font-size: 11px;
+  }
+  
+  .pagination {
+    gap: 6px;
+  }
+  
+  .pagination-btn {
+    min-width: 60px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .pagination-number {
+    padding: 5px 8px;
+    min-width: 30px;
+    font-size: 12px;
+  }
+  
+  .pagination-numbers {
+    gap: 4px;
+  }
+}
+
 /* Table Header Improvements for Sorting */
 .permissions-table th.sortable {
   padding: 15px 10px;
@@ -644,28 +1025,79 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Permission List Header */
+.permission-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(193 201 215);
+  gap: 15px;
+}
+
+.permissions-list h5 {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+  flex: 1;
+}
+
 /* Search Container */
 .search-container {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  width: 300px;
+  max-width: 100%;
 }
 
 .search-box {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  width: 100%;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 16px;
-  padding-right: 40px;
+  padding: 8px 12px;
+  padding-right: 35px;
   background-color: #2a2a2a;
   border: 1px solid #444;
-  border-radius: 8px;
+  border-radius: 6px;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.3s ease;
+}
+
+/* Mobile Responsive for Permission List Header */
+@media (max-width: 768px) {
+  .permission-list-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .permissions-list h5 {
+    font-size: 16px;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .permissions-list h5 {
+    font-size: 14px;
+  }
+  
+  .search-input {
+    padding: 6px 10px;
+    padding-right: 30px;
+    font-size: 12px;
+  }
 }
 
 .search-input:focus {
@@ -681,15 +1113,15 @@
 
 .clear-search-btn {
   position: absolute;
-  right: 12px;
+  right: 8px;
   background: none;
   border: none;
   color: #888;
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -704,24 +1136,196 @@
   color: #ccc;
   font-size: 13px;
   font-style: italic;
-  margin-top: 5px;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+/* Mobile Responsive for Search Results */
+@media (max-width: 768px) {
+  .search-results-info {
+    font-size: 12px;
+    text-align: left;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-results-info {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
 }
 
 /* Responsive Search Styles */
 @media (max-width: 768px) {
+  .permission-list-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+  
   .search-input {
-    padding: 10px 14px;
+    padding: 10px 12px;
     padding-right: 35px;
     font-size: 13px;
   }
   
   .clear-search-btn {
     right: 10px;
-    font-size: 18px;
+    font-size: 14px;
   }
   
   .search-results-info {
     font-size: 12px;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    padding: 8px 10px;
+    padding-right: 30px;
+    font-size: 12px;
+  }
+  
+  .clear-search-btn {
+    right: 8px;
+    font-size: 12px;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .search-results-info {
+    font-size: 11px;
+  }
+}
+
+/* Mobile Responsive for No Data and Buttons */
+@media (max-width: 768px) {
+  .no-data {
+    padding: 30px;
+    font-size: 14px;
+  }
+  
+  .btn-clear-search {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  
+  .btn-add {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .no-data {
+    padding: 20px;
+    font-size: 13px;
+  }
+  
+  .btn-clear-search {
+    padding: 5px 10px;
+    font-size: 11px;
+    margin-top: 6px;
+  }
+  
+  .btn-add {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+/* General Mobile Improvements */
+@media (max-width: 768px) {
+  .error {
+    padding: 30px;
+    font-size: 14px;
+  }
+  
+  .loading {
+    padding: 30px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .error {
+    padding: 20px;
+    font-size: 13px;
+  }
+  
+  .loading {
+    padding: 20px;
+    font-size: 13px;
+  }
+}
+
+/* 
+  Mobile Responsive Design Notes:
+  - Designed for mobile-first approach
+  - Requires viewport meta tag: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  - Breakpoints: 480px (mobile), 768px (tablet), 1024px+ (desktop)
+  - Horizontal scroll enabled for table on small screens
+  - Touch-friendly button sizes and spacing
+*/
+
+/* Ensure dark background on all devices */
+html, body {
+  background-color: #281e24 !important;
+  color: white !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Mobile viewport and background fixes */
+@media (max-width: 768px) {
+  html {
+    background-color: #281e24 !important;
+    color: white !important;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  body {
+    background-color: #281e24 !important;
+    color: white !important;
+    width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    background-color: #281e24 !important;
+    color: white !important;
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    background-color: #281e24 !important;
+    color: white !important;
+  }
+  
+  body {
+    background-color: #281e24 !important;
+    color: white !important;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    background-color: #281e24 !important;
+    color: white !important;
+    min-height: 100vh;
   }
 }
 
