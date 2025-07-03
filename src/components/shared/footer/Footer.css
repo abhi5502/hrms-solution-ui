@@ -1,0 +1,37 @@
+
+.footer {
+  background-color: #2d2d44;
+  color: #b8b8b8;
+  padding: 15px 20px;
+  border-top: 1px solid #3d3d56;
+  text-align: center;
+  width: 100%;
+  z-index: 100;
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+.footer p {
+  margin: 0;
+  font-size: 14px;
+  color: #b8b8b8;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #6366f1;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: #8b5cf6;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 12px 15px;
+  }
+  
+  .footer p {
+    font-size: 12px;
+  }
+}

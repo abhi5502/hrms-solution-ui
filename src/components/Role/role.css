@@ -1,0 +1,518 @@
+.role-container {
+  padding: 20px;
+  background-color: #281e24;
+  min-height: 100vh;
+  color: white;
+}
+
+.role-container h1 {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 20px;
+  /* Remove duplicate border - handled by page-header */
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: white;
+  font-size: 28px;
+}
+
+/* Loading and Error States */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ccc;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 4px;
+}
+
+/* Skeleton Loading Styles */
+.skeleton-container {
+  margin-top: 20px;
+}
+
+.skeleton-row {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid #333;
+  align-items: center;
+  gap: 20px;
+}
+
+.skeleton-cell {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 16px;
+}
+
+.skeleton-cell.serial {
+  width: 40px;
+}
+
+.skeleton-cell.name {
+  width: 200px;
+}
+
+.skeleton-cell.status {
+  width: 80px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.skeleton-cell.actions {
+  width: 120px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.skeleton-title {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 32px;
+  width: 200px;
+}
+
+.skeleton-button {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 40px;
+  width: 120px;
+}
+
+.skeleton-table {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.skeleton-table-header {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-bottom: 2px solid #333;
+  display: flex;
+  font-weight: bold;
+  color: #ccc;
+}
+
+.skeleton-table-header > div {
+  flex: 1;
+  text-align: left;
+}
+
+.skeleton-table-header > div:first-child {
+  flex: 0 0 60px;
+}
+
+.skeleton-table-header > div:last-child {
+  flex: 0 0 140px;
+  text-align: center;
+}
+
+/* Loading Overlay for Operations */
+.table-loading-overlay {
+  position: relative;
+}
+
+.table-loading-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 30, 36, 0.7);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.table-loading-overlay::after {
+  content: 'Processing...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 11;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+/* Roles List Container */
+.roles-list {
+  margin-top: 25px;
+  background: linear-gradient(145deg, rgb(65, 61, 61), rgb(50, 46, 46));
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Firefox Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+}
+
+.roles-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.05) 0%, 
+    rgba(168, 85, 247, 0.05) 100%);
+  border-radius: 15px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.roles-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+.roles-list h5 {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 20px;
+  margin-top: 0;
+  font-weight: 600;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(193 201 215);
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.roles-table thead {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.roles-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.roles-table td {
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  vertical-align: middle;
+  color: white;
+  background: transparent;
+}
+
+.roles-table td,
+.roles-table th {
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
+.roles-table td::before,
+.roles-table th::before {
+  display: none !important;
+}
+
+.roles-table td::after,
+.roles-table th::after {
+  display: none !important;
+}
+
+.roles-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.roles-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.roles-table tbody tr:hover td {
+  background-color: transparent !important;
+}
+
+/* Remove any individual cell hover effects */
+.roles-table td:hover {
+  background-color: transparent !important;
+}
+
+.roles-table td:hover * {
+  background-color: transparent !important;
+}
+
+.roles-table tbody tr:last-child td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Serial Number Column */
+.serial-no {
+  font-weight: normal;
+  color: white;
+  text-align: center;
+  width: 80px;
+}
+
+/* Role Name - Simple text only */
+.role-name {
+  color: white !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+  display: table-cell !important;
+}
+
+/* Status Badges - NO HOVER EFFECTS */
+.status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: none !important;
+  pointer-events: none;
+}
+
+.status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Explicitly prevent ALL hover effects on status badges */
+.status:hover,
+.roles-table tr:hover .status,
+.roles-table td:hover .status,
+.roles-table tbody tr:hover .status {
+  background-color: inherit !important;
+  color: inherit !important;
+  border: inherit !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.status.active:hover,
+.roles-table tr:hover .status.active,
+.roles-table td:hover .status.active,
+.roles-table tbody tr:hover .status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive:hover,
+.roles-table tr:hover .status.inactive,
+.roles-table td:hover .status.inactive,
+.roles-table tbody tr:hover .status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Action Buttons - Simple Icons Only in One Line */
+.roles-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+  padding: 15px;
+  vertical-align: middle;
+}
+
+.roles-table th:last-child {
+  text-align: center;
+}
+
+.btn-view,
+.btn-edit,
+.btn-delete {
+  background: none !important;
+  border: none !important;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  transition: none !important;
+  color: inherit;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+.btn-view {
+  margin-right: 4px !important;
+}
+
+.btn-edit {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.btn-delete {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.btn-view:hover,
+.btn-edit:hover,
+.btn-delete:hover {
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-view:disabled,
+.btn-edit:disabled,
+.btn-delete:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Add Button */
+.btn-add {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-add:hover {
+  background-color: #5855f0;
+}
+
+.btn-add:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #ccc;
+  font-style: italic;
+}
+
+/* Remove old styles */
+.page-content {
+  display: none;
+}
+
+/* Custom Scrollbar Styling */
+.roles-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.roles-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.roles-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.8) 0%, 
+    rgba(168, 85, 247, 0.8) 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.roles-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 1) 0%, 
+    rgba(168, 85, 247, 1) 100%);
+}
+
+.roles-list::-webkit-scrollbar-corner {
+/* Firefox Scrollbar */
+/* (Merged into the main .roles-list selector above) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+}
+
+/* Table Wrapper for better scroll control */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 -5px; /* Compensate for internal padding */
+}
+
+/* Simple table styling only */
