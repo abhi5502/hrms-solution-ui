@@ -1,34 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   PermissionFormModal,
   DeleteConfirmModal,
   ViewPermissionModal,
 } from "./PermissionModals";
 import "./permission.css";
-
-// Custom Alert Modal Component
-const AlertModal = ({ isOpen, onClose, message, title = "Alert" }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content alert-modal">
-        <div className="alert-header">
-          <h3>{title}</h3>
-        </div>
-        <div className="alert-body">
-          <div className="alert-icon">⚠️</div>
-          <p>{message}</p>
-        </div>
-        <div className="alert-footer">
-          <button className="btn-primary" onClick={onClose}>
-            OK
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Skeleton Loading Component
 const PermissionsSkeleton = () => (
@@ -101,24 +78,6 @@ export const Permission = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPermission, setSelectedPermission] = useState(null);
   const [editingPermission, setEditingPermission] = useState(null);
-
-  // Alert Modal states
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertTitle, setAlertTitle] = useState("Alert");
-
-  // Helper function to show alert modal
-  const showAlert = (message, title = "Alert") => {
-    setAlertMessage(message);
-    setAlertTitle(title);
-    setIsAlertOpen(true);
-  };
-
-  const closeAlert = () => {
-    setIsAlertOpen(false);
-    setAlertMessage("");
-    setAlertTitle("Alert");
-  };
 
   useEffect(() => {
     fetchPermissions();
@@ -284,9 +243,8 @@ export const Permission = () => {
         );
 
         if (isDuplicate) {
-          showAlert(
-            `Permission "${permissionData.name}" already exists! Please choose a different name.`,
-            "Duplicate Permission"
+          toast.error(
+            `Permission "${permissionData.name}" already exists! Please choose a different name.`
           );
           return;
         }
@@ -331,9 +289,8 @@ export const Permission = () => {
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Response error:", errorText);
-          showAlert(
-            `Failed to update permission: ${response.status} ${response.statusText}`,
-            "Update Failed"
+          toast.error(
+            `Failed to update permission: ${response.status} ${response.statusText}`
           );
           return;
         }
@@ -347,18 +304,17 @@ export const Permission = () => {
           // Refresh the permissions list
           await fetchPermissions();
           operationSuccessful = true;
+          toast.success("Permission updated successfully!");
         } else {
           // Check if it's a duplicate error (409 status code)
           if (result.statusCode === 409 || response.status === 409) {
-            showAlert(
-              `Permission "${permissionData.name}" already exists! Please choose a different name.`,
-              "Duplicate Permission"
+            toast.error(
+              `Permission "${permissionData.name}" already exists! Please choose a different name.`
             );
           } else {
-            showAlert(
+            toast.error(
               result.message ||
-                `Failed to update permission: ${response.status} ${response.statusText}`,
-              "Update Failed"
+                `Failed to update permission: ${response.status} ${response.statusText}`
             );
           }
         }
@@ -371,9 +327,8 @@ export const Permission = () => {
         );
 
         if (isDuplicate) {
-          showAlert(
-            `Permission "${permissionData.name}" already exists! Please choose a different name.`,
-            "Duplicate Permission"
+          toast.error(
+            `Permission "${permissionData.name}" already exists! Please choose a different name.`
           );
           return;
         }
@@ -402,18 +357,15 @@ export const Permission = () => {
           // Refresh the permissions list
           await fetchPermissions();
           operationSuccessful = true;
+          toast.success("Permission created successfully!");
         } else {
           // Check if it's a duplicate error (409 status code)
           if (result.statusCode === 409 || response.status === 409) {
-            showAlert(
-              `Permission "${permissionData.name}" already exists! Please choose a different name.`,
-              "Duplicate Permission"
+            toast.error(
+              `Permission "${permissionData.name}" already exists! Please choose a different name.`
             );
           } else {
-            showAlert(
-              result.message || "Failed to add permission",
-              "Creation Failed"
-            );
+            toast.error(result.message || "Failed to add permission");
           }
         }
       }
@@ -424,7 +376,7 @@ export const Permission = () => {
         setEditingPermission(null);
       }
     } catch (err) {
-      showAlert("Error saving permission. Please try again.", "Error");
+      toast.error("Error saving permission. Please try again.");
       console.error("Error saving permission:", err);
     } finally {
       setOperationLoading(false);
@@ -446,14 +398,15 @@ export const Permission = () => {
       if (result.success) {
         // Refresh the permissions list
         await fetchPermissions();
+        toast.success("Permission deleted successfully!");
       } else {
-        setError("Failed to delete permission");
+        toast.error("Failed to delete permission");
       }
 
       setIsDeleteModalOpen(false);
       setSelectedPermission(null);
     } catch (err) {
-      setError("Error deleting permission");
+      toast.error("Error deleting permission");
       console.error("Error deleting permission:", err);
     } finally {
       setOperationLoading(false);
@@ -693,14 +646,6 @@ export const Permission = () => {
           setSelectedPermission(null);
         }}
         permission={selectedPermission}
-      />
-
-      {/* Custom Alert Modal */}
-      <AlertModal
-        isOpen={isAlertOpen}
-        onClose={closeAlert}
-        message={alertMessage}
-        title={alertTitle}
       />
     </div>
   );

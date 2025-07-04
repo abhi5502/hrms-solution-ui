@@ -1,5 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { RBACProvider } from "./contexts/RBACContext";
 import { Header } from "./components/shared/header/Header";
 import { Footer } from "./components/shared/footer/Footer";
@@ -49,6 +51,18 @@ function App() {
             </div>
           </div>
           <Footer />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+          />
         </div>
       </RBACProvider>
     </Router>

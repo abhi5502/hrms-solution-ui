@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { RoleFormModal, DeleteConfirmModal, ViewRoleModal } from "./RoleModals";
 import "./role.css";
 
@@ -38,7 +39,6 @@ export const Role = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Modal states
   const [isRoleFormOpen, setIsRoleFormOpen] = useState(false);
@@ -62,10 +62,10 @@ export const Role = () => {
       if (result.success) {
         setRoles(result.data);
       } else {
-        setError("Failed to fetch roles");
+        toast.error("Failed to fetch roles");
       }
     } catch (err) {
-      setError("Error connecting to server");
+      toast.error("Error connecting to server");
       console.error("Error fetching roles:", err);
     } finally {
       setLoading(false);
@@ -121,8 +121,9 @@ export const Role = () => {
           console.log("Role updated successfully:", result.data);
           // Refresh the roles list
           await fetchRoles();
+          toast.success("Role updated successfully!");
         } else {
-          setError(result.message || "Failed to update role");
+          toast.error(result.message || "Failed to update role");
         }
       } else {
         // Add new role
@@ -145,15 +146,16 @@ export const Role = () => {
           console.log("Role created successfully:", result.data);
           // Refresh the roles list
           await fetchRoles();
+          toast.success("Role created successfully!");
         } else {
-          setError(result.message || "Failed to add role");
+          toast.error(result.message || "Failed to add role");
         }
       }
 
       setIsRoleFormOpen(false);
       setEditingRole(null);
     } catch (err) {
-      setError("Error saving role");
+      toast.error("Error saving role. Please try again.");
       console.error("Error saving role:", err);
     } finally {
       setOperationLoading(false);
@@ -175,14 +177,15 @@ export const Role = () => {
       if (result.success) {
         // Refresh the roles list
         await fetchRoles();
+        toast.success("Role deleted successfully!");
       } else {
-        setError("Failed to delete role");
+        toast.error("Failed to delete role");
       }
 
       setIsDeleteModalOpen(false);
       setSelectedRole(null);
     } catch (err) {
-      setError("Error deleting role");
+      toast.error("Error deleting role");
       console.error("Error deleting role:", err);
     } finally {
       setOperationLoading(false);
@@ -191,15 +194,6 @@ export const Role = () => {
 
   if (loading) {
     return <RolesSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="role-container">
-        <h1>Roles</h1>
-        <div className="error">Error: {error}</div>
-      </div>
-    );
   }
 
   return (
