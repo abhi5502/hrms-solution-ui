@@ -280,22 +280,62 @@
   font-style: italic;
 }
 
-/* Specific styling for Delete Role button in delete modal */
-.delete-modal .btn-delete {
-  background-color: #dc3545 !important;
-  color: white !important;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  min-width: 100px;
+/* Delete Modal Footer Styling */
+.delete-modal .modal-footer {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 20px 30px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 15px !important;
+  min-height: 80px !important;
 }
 
-.delete-modal .btn-delete:hover {
-  background-color: #c82333 !important;
+/* Ensure both buttons in delete modal have consistent styling */
+.delete-modal .modal-footer .btn-cancel,
+.delete-modal .modal-footer .btn-delete {
+  padding: 14px 28px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  min-width: 130px !important;
+  height: 44px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.delete-modal .modal-footer .btn-cancel {
+  background: linear-gradient(135deg, #718096, #4a5568) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(113, 128, 150, 0.4) !important;
+}
+
+.delete-modal .modal-footer .btn-cancel:hover {
+  background: linear-gradient(135deg, #4a5568, #2d3748) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(113, 128, 150, 0.6) !important;
+}
+
+.delete-modal .modal-footer .btn-delete {
+  background: linear-gradient(135deg, #f56565, #e53e3e) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4) !important;
+}
+
+.delete-modal .modal-footer .btn-delete:hover {
+  background: linear-gradient(135deg, #e53e3e, #c53030) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(245, 101, 101, 0.6) !important;
 }
 
 /* View Role Modal Styles - Dark Professional Theme */
@@ -543,5 +583,25 @@
   
   .view-role-modal .role-details {
     gap: 15px;
+  }
+}
+
+/* Responsive Design for Delete Modal */
+@media (max-width: 768px) {
+  .delete-modal .modal-footer {
+    flex-direction: column !important;
+    padding: 20px !important;
+    gap: 12px !important;
+    min-height: auto !important;
+  }
+
+  .delete-modal .modal-footer .btn-cancel,
+  .delete-modal .modal-footer .btn-delete {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    padding: 14px !important;
+    font-size: 14px !important;
+    height: 44px !important;
+    min-width: auto !important;
   }
 }

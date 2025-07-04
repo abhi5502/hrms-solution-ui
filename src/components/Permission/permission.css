@@ -1329,4 +1329,110 @@ html, body {
   }
 }
 
+/* Custom Alert Modal Styles */
+.alert-modal {
+  max-width: 500px;
+  width: 90%;
+  background: #2a2a2a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.alert-header {
+  background: #3a3a3a;
+  padding: 15px 20px;
+  border-bottom: 1px solid #444;
+}
+
+.alert-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.alert-body {
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  min-height: 80px;
+}
+
+.alert-icon {
+  font-size: 32px;
+  color: #ff9800;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.alert-body p {
+  margin: 0;
+  color: white;
+  font-size: 16px;
+  line-height: 1.5;
+  flex: 1;
+  padding-top: 8px;
+}
+
+.alert-footer {
+  background: #3a3a3a;
+  padding: 15px 20px;
+  border-top: 1px solid #444;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alert-footer .btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 80px;
+}
+
+.alert-footer .btn-primary:hover {
+  background: #0056b3;
+}
+
+.alert-footer .btn-primary:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive for alert modal */
+@media (max-width: 768px) {
+  .alert-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .alert-body {
+    padding: 15px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .alert-icon {
+    margin-top: 0;
+  }
+  
+  .alert-body p {
+    padding-top: 0;
+  }
+  
+  .alert-header,
+  .alert-footer {
+    padding: 12px 15px;
+  }
+}
+
 

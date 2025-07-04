@@ -6,6 +6,30 @@ import {
 } from "./PermissionModals";
 import "./permission.css";
 
+// Custom Alert Modal Component
+const AlertModal = ({ isOpen, onClose, message, title = "Alert" }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content alert-modal">
+        <div className="alert-header">
+          <h3>{title}</h3>
+        </div>
+        <div className="alert-body">
+          <div className="alert-icon">⚠️</div>
+          <p>{message}</p>
+        </div>
+        <div className="alert-footer">
+          <button className="btn-primary" onClick={onClose}>
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Skeleton Loading Component
 const PermissionsSkeleton = () => (
   <div className="permission-container">
@@ -77,6 +101,24 @@ export const Permission = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPermission, setSelectedPermission] = useState(null);
   const [editingPermission, setEditingPermission] = useState(null);
+
+  // Alert Modal states
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertTitle, setAlertTitle] = useState("Alert");
+
+  // Helper function to show alert modal
+  const showAlert = (message, title = "Alert") => {
+    setAlertMessage(message);
+    setAlertTitle(title);
+    setIsAlertOpen(true);
+  };
+
+  const closeAlert = () => {
+    setIsAlertOpen(false);
+    setAlertMessage("");
+    setAlertTitle("Alert");
+  };
 
   useEffect(() => {
     fetchPermissions();
@@ -205,11 +247,13 @@ export const Permission = () => {
 
   // Modal handlers
   const handleAddPermission = () => {
+    setError(null); // Clear any previous errors
     setEditingPermission(null);
     setIsPermissionFormOpen(true);
   };
 
   const handleEditPermission = (permission) => {
+    setError(null); // Clear any previous errors
     setEditingPermission(permission);
     setIsPermissionFormOpen(true);
   };
@@ -228,9 +272,41 @@ export const Permission = () => {
   const handleSavePermission = async (permissionData) => {
     try {
       setOperationLoading(true);
+      let operationSuccessful = false;
 
       if (editingPermission) {
-        // Update existing permission
+        // Update existing permission - Check for duplicates (excluding current permission)
+        const isDuplicate = permissions.some(
+          (permission) =>
+            permission.id !== editingPermission.id &&
+            permission.name.toLowerCase().trim() ===
+              permissionData.name.toLowerCase().trim()
+        );
+
+        if (isDuplicate) {
+          showAlert(
+            `Permission "${permissionData.name}" already exists! Please choose a different name.`,
+            "Duplicate Permission"
+          );
+          return;
+        }
+
+        const requestData = {
+          id: editingPermission.id,
+          name: permissionData.name,
+          action: permissionData.action,
+          description: permissionData.description,
+          status: permissionData.status === "active", // Check lowercase "active"
+        };
+
+        console.log("Updating permission with data:", requestData);
+        console.log("Original permission status:", editingPermission.status);
+        console.log("Form data status:", permissionData.status);
+        console.log(
+          "Converted boolean status:",
+          permissionData.status === "active"
+        );
+
         const response = await fetch(
           "https://localhost:7777/gateway/Permissions/update-permission",
           {
@@ -243,20 +319,66 @@ export const Permission = () => {
               name: permissionData.name,
               action: permissionData.action,
               description: permissionData.description,
+              status: permissionData.status === "active", // Check lowercase "active"
             }),
           }
         );
 
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+
+        // Check if response is ok first
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Response error:", errorText);
+          showAlert(
+            `Failed to update permission: ${response.status} ${response.statusText}`,
+            "Update Failed"
+          );
+          return;
+        }
+
         const result = await response.json();
-        if (result.success) {
+        console.log("Update response:", result);
+
+        // Check for success based on the actual API response structure
+        if (result.success && result.statusCode === 200) {
           console.log("Permission updated successfully:", result.data);
           // Refresh the permissions list
           await fetchPermissions();
+          operationSuccessful = true;
         } else {
-          setError(result.message || "Failed to update permission");
+          // Check if it's a duplicate error (409 status code)
+          if (result.statusCode === 409 || response.status === 409) {
+            showAlert(
+              `Permission "${permissionData.name}" already exists! Please choose a different name.`,
+              "Duplicate Permission"
+            );
+          } else {
+            showAlert(
+              result.message ||
+                `Failed to update permission: ${response.status} ${response.statusText}`,
+              "Update Failed"
+            );
+          }
         }
       } else {
-        // Add new permission
+        // Add new permission - Check for duplicates first
+        const isDuplicate = permissions.some(
+          (permission) =>
+            permission.name.toLowerCase().trim() ===
+            permissionData.name.toLowerCase().trim()
+        );
+
+        if (isDuplicate) {
+          showAlert(
+            `Permission "${permissionData.name}" already exists! Please choose a different name.`,
+            "Duplicate Permission"
+          );
+          return;
+        }
+
+        // Add new permission (no status field needed)
         const response = await fetch(
           "https://localhost:7777/gateway/Permissions/create-permission",
           {
@@ -273,19 +395,36 @@ export const Permission = () => {
         );
 
         const result = await response.json();
+
+        // Handle different response scenarios
         if (result.success) {
           console.log("Permission created successfully:", result.data);
           // Refresh the permissions list
           await fetchPermissions();
+          operationSuccessful = true;
         } else {
-          setError(result.message || "Failed to add permission");
+          // Check if it's a duplicate error (409 status code)
+          if (result.statusCode === 409 || response.status === 409) {
+            showAlert(
+              `Permission "${permissionData.name}" already exists! Please choose a different name.`,
+              "Duplicate Permission"
+            );
+          } else {
+            showAlert(
+              result.message || "Failed to add permission",
+              "Creation Failed"
+            );
+          }
         }
       }
 
-      setIsPermissionFormOpen(false);
-      setEditingPermission(null);
+      // Only close modal and clear editing state if the operation was successful
+      if (operationSuccessful) {
+        setIsPermissionFormOpen(false);
+        setEditingPermission(null);
+      }
     } catch (err) {
-      setError("Error saving permission");
+      showAlert("Error saving permission. Please try again.", "Error");
       console.error("Error saving permission:", err);
     } finally {
       setOperationLoading(false);
@@ -554,6 +693,14 @@ export const Permission = () => {
           setSelectedPermission(null);
         }}
         permission={selectedPermission}
+      />
+
+      {/* Custom Alert Modal */}
+      <AlertModal
+        isOpen={isAlertOpen}
+        onClose={closeAlert}
+        message={alertMessage}
+        title={alertTitle}
       />
     </div>
   );

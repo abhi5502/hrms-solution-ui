@@ -13,6 +13,7 @@ export const PermissionFormModal = ({
     name: "",
     action: "",
     description: "",
+    status: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -22,16 +23,19 @@ export const PermissionFormModal = ({
         name: permission.name || "",
         action: permission.action || "",
         description: permission.description || "",
+        status: permission.status ? permission.status.toLowerCase() : "",
       });
     } else {
       setFormData({
         name: "",
         action: "",
         description: "",
+        status: "",
       });
     }
     setErrors({});
   }, [permission, isOpen]);
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -45,6 +49,11 @@ export const PermissionFormModal = ({
 
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
+    }
+
+    // Only validate status if we're editing (permission exists)
+    if (permission && !formData.status.trim()) {
+      newErrors.status = "Status is required";
     }
 
     setErrors(newErrors);
@@ -80,52 +89,77 @@ export const PermissionFormModal = ({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="name">Permission Name *</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className={errors.name ? "error" : ""}
-                placeholder="Enter permission name"
-              />
-              {errors.name && <span className="error-text">{errors.name}</span>}
+          <div className="modal-body">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="name">Permission Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={errors.name ? "error" : ""}
+                  placeholder="Enter permission name"
+                />
+                {errors.name && (
+                  <span className="error-text">{errors.name}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="action">Action *</label>
+                <input
+                  type="text"
+                  id="action"
+                  name="action"
+                  value={formData.action}
+                  onChange={handleInputChange}
+                  className={errors.action ? "error" : ""}
+                  placeholder="Enter action (e.g., Create, Read, Update, Delete)"
+                />
+                {errors.action && (
+                  <span className="error-text">{errors.action}</span>
+                )}
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="action">Action *</label>
-              <input
-                type="text"
-                id="action"
-                name="action"
-                value={formData.action}
-                onChange={handleInputChange}
-                className={errors.action ? "error" : ""}
-                placeholder="Enter action (e.g., Create, Read, Update, Delete)"
-              />
-              {errors.action && (
-                <span className="error-text">{errors.action}</span>
-              )}
-            </div>
-          </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="description">Description *</label>
+                <input
+                  type="text"
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={errors.description ? "error" : ""}
+                  placeholder="Enter permission description"
+                />
+                {errors.description && (
+                  <span className="error-text">{errors.description}</span>
+                )}
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="description">Description *</label>
-              <input
-                type="text"
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className={errors.description ? "error" : ""}
-                placeholder="Enter permission description"
-              />
-              {errors.description && (
-                <span className="error-text">{errors.description}</span>
+              {/* Show Status dropdown only when editing */}
+              {permission && (
+                <div className="form-group">
+                  <label htmlFor="status">Status *</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className={errors.status ? "error" : ""}
+                  >
+                    <option value="">-- Select Status --</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  {errors.status && (
+                    <span className="error-text">{errors.status}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -153,6 +187,7 @@ PermissionFormModal.propTypes = {
     name: PropTypes.string,
     action: PropTypes.string,
     description: PropTypes.string,
+    status: PropTypes.string,
   }),
   onSave: PropTypes.func.isRequired,
 };
@@ -243,36 +278,36 @@ export const ViewPermissionModal = ({ isOpen, onClose, permission }) => {
         <div className="modal-body">
           <div className="permission-details">
             <div className="detail-row">
-              <label>Permission Name:</label>
+              <div className="detail-label">Permission Name:</div>
               <span className="detail-value">{permission.name}</span>
             </div>
 
             <div className="detail-row">
-              <label>Action:</label>
+              <div className="detail-label">Action:</div>
               <span className="detail-value">{permission.action}</span>
             </div>
 
             <div className="detail-row">
-              <label>Description:</label>
+              <div className="detail-label">Description:</div>
               <span className="detail-value">{permission.description}</span>
             </div>
 
             <div className="detail-row">
-              <label>Status:</label>
+              <div className="detail-label">Status:</div>
               <span className={`status ${permission.status.toLowerCase()}`}>
                 {permission.status}
               </span>
             </div>
 
             <div className="detail-row">
-              <label>Created Date:</label>
+              <div className="detail-label">Created Date:</div>
               <span className="detail-value">
                 {formatDate(permission.createdAt || permission.createdDate)}
               </span>
             </div>
 
             <div className="detail-row">
-              <label>Modified Date:</label>
+              <div className="detail-label">Modified Date:</div>
               <span className="detail-value">
                 {formatDate(
                   permission.updatedAt ||
