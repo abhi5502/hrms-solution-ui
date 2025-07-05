@@ -1,0 +1,1126 @@
+.module-container {
+  padding: 20px;
+  background-color: #281e24 !important;
+  min-height: 100vh;
+  color: white !important;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.module-container h1 {
+  color: white !important;
+  font-size: 28px;
+  margin-bottom: 20px;
+  /* Remove duplicate border - handled by page-header */
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+  gap: 15px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: white;
+  font-size: 28px;
+  flex: 1;
+}
+
+/* Mobile Responsive for Page Header */
+@media (max-width: 768px) {
+  .module-container {
+    padding: 15px !important;
+    background-color: #281e24 !important;
+    min-height: 100vh;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+    color: white !important;
+  }
+  
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-container {
+    padding: 10px !important;
+    background-color: #281e24 !important;
+    min-height: 100vh;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+    color: white !important;
+  }
+}
+
+/* Force dark theme on mobile devices */
+@media screen and (max-width: 768px) {
+  * {
+    background-color: #281e24 !important;
+    color: white !important;
+  }
+  
+  .App {
+    background-color: #281e24 !important;
+  }
+  
+  .app-body {
+    background-color: #281e24 !important;
+  }
+  
+  .main-content {
+    background-color: #281e24 !important;
+  }
+}
+
+/* Webkit mobile fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  html {
+    background-color: #281e24 !important;
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+  
+  body {
+    background-color: #281e24 !important;
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+}
+
+/* Critical mobile background fix - highest priority */
+@media only screen and (max-width: 768px) {
+  html {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  body {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  #root {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  .App {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+  
+  .module-container {
+    background: #281e24 !important;
+    background-color: #281e24 !important;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  @media only screen and (max-width: 768px) {
+    html {
+      background: #281e24 !important;
+      background-size: cover;
+      -webkit-background-size: cover;
+    }
+    
+    body {
+      background: #281e24 !important;
+      background-size: cover;
+      -webkit-background-size: cover;
+    }
+  }
+}
+
+/* Loading and Error States */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ccc;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 4px;
+}
+
+/* Skeleton Loading Styles */
+.skeleton-container {
+  margin-top: 20px;
+}
+
+.skeleton-row {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid #333;
+  align-items: center;
+  gap: 20px;
+}
+
+.skeleton-cell {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 16px;
+}
+
+.skeleton-cell.serial {
+  width: 40px;
+}
+
+.skeleton-cell.name {
+  width: 200px;
+}
+
+.skeleton-cell.description {
+  width: 300px;
+}
+
+.skeleton-cell.status {
+  width: 80px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.skeleton-cell.actions {
+  width: 120px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.skeleton-title {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 32px;
+  width: 200px;
+}
+
+.skeleton-button {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 40px;
+  width: 120px;
+}
+
+.skeleton-table {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.skeleton-table-header {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-bottom: 2px solid #333;
+  display: flex;
+  font-weight: bold;
+  color: #ccc;
+}
+
+.skeleton-table-header > div {
+  flex: 1;
+  text-align: left;
+}
+
+.skeleton-table-header > div:first-child {
+  flex: 0 0 60px;
+}
+
+.skeleton-table-header > div:last-child {
+  flex: 0 0 140px;
+  text-align: center;
+}
+
+/* Mobile Responsive for Skeleton Loader */
+@media (max-width: 768px) {
+  .skeleton-row {
+    padding: 12px;
+    gap: 15px;
+  }
+  
+  .skeleton-cell.name {
+    width: 150px;
+  }
+  
+  .skeleton-cell.description {
+    width: 200px;
+  }
+  
+  .skeleton-cell.actions {
+    width: 100px;
+    height: 28px;
+  }
+  
+  .skeleton-table-header {
+    padding: 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-row {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .skeleton-cell.serial {
+    width: 30px;
+  }
+  
+  .skeleton-cell.name {
+    width: 120px;
+  }
+  
+  .skeleton-cell.description {
+    width: 150px;
+  }
+  
+  .skeleton-cell.status {
+    width: 60px;
+    height: 20px;
+  }
+  
+  .skeleton-cell.actions {
+    width: 80px;
+    height: 24px;
+  }
+  
+  .skeleton-table-header {
+    padding: 10px;
+    font-size: 10px;
+  }
+}
+
+/* Loading Overlay for Operations */
+.table-loading-overlay {
+  position: relative;
+}
+
+.table-loading-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 30, 36, 0.7);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.table-loading-overlay::after {
+  content: 'Processing...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 11;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+/* Modules List Container */
+.modules-list {
+  margin-top: 25px;
+  background: linear-gradient(145deg, rgb(65, 61, 61), rgb(50, 46, 46));
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Firefox Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile Responsive for Modules List */
+@media (max-width: 768px) {
+  .modules-list {
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modules-list {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    max-height: 400px;
+  }
+}
+
+.modules-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.05) 0%, 
+    rgba(168, 85, 247, 0.05) 100%);
+  border-radius: 15px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.modules-list > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Module List Header */
+.module-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+  gap: 20px;
+}
+
+.module-list-header h5 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Search Container */
+.search-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 10px 40px 10px 12px;
+  color: white;
+  font-size: 14px;
+  min-width: 250px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+  transition: color 0.3s;
+}
+
+.clear-search-btn:hover {
+  color: #fff;
+}
+
+/* Mobile Responsive for Search */
+@media (max-width: 768px) {
+  .module-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .search-input {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    min-width: 150px;
+    padding: 8px 35px 8px 10px;
+    font-size: 13px;
+  }
+  
+  .module-list-header h5 {
+    font-size: 16px;
+  }
+}
+
+/* Search Results Info */
+.search-results-info {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+  color: #a5b4fc;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Table Styles */
+.modules-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  min-width: 600px;
+}
+
+.modules-table th,
+.modules-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+  color: white;
+}
+
+.modules-table th {
+  background-color: #2a2a2a;
+  font-weight: bold;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+.modules-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.modules-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Mobile Responsive for Table */
+@media (max-width: 768px) {
+  .modules-table {
+    min-width: 500px;
+  }
+  
+  .modules-table th,
+  .modules-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .modules-table th {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modules-table {
+    min-width: 400px;
+  }
+  
+  .modules-table th,
+  .modules-table td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  
+  .modules-table th {
+    font-size: 10px;
+  }
+}
+
+/* Sortable Column Headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.sortable:hover {
+  color: #6366f1;
+}
+
+.sortable.sorted-asc,
+.sortable.sorted-desc {
+  color: #6366f1;
+}
+
+.sort-indicator {
+  font-size: 10px;
+  margin-left: 5px;
+  color: #888;
+}
+
+.sortable:hover .sort-indicator {
+  color: #6366f1;
+}
+
+.sortable.sorted-asc .sort-indicator,
+.sortable.sorted-desc .sort-indicator {
+  color: #6366f1;
+}
+
+/* Table Cell Styles */
+.serial-no {
+  width: 60px;
+  text-align: center;
+  font-weight: bold;
+  color: #888;
+}
+
+.module-name {
+  font-weight: 500;
+  color: #fff;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.module-description {
+  color: #ccc;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+/* Mobile Responsive for Table Cells */
+@media (max-width: 768px) {
+  .serial-no {
+    width: 40px;
+  }
+  
+  .module-name {
+    font-size: 13px;
+    min-width: 120px;
+  }
+  
+  .module-description {
+    font-size: 12px;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .serial-no {
+    width: 30px;
+  }
+  
+  .module-name {
+    font-size: 12px;
+    min-width: 100px;
+  }
+  
+  .module-description {
+    font-size: 11px;
+    min-width: 120px;
+  }
+}
+
+/* Status Styles */
+.status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: none !important;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Mobile Responsive for Status */
+@media (max-width: 768px) {
+  .status {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Explicitly prevent ALL hover effects on status badges */
+.status:hover,
+.modules-table tr:hover .status,
+.modules-table td:hover .status,
+.modules-table tbody tr:hover .status {
+  background-color: inherit !important;
+  color: inherit !important;
+  border: inherit !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.status.active:hover,
+.modules-table tr:hover .status.active,
+.modules-table td:hover .status.active,
+.modules-table tbody tr:hover .status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive:hover,
+.modules-table tr:hover .status.inactive,
+.modules-table td:hover .status.inactive,
+.modules-table tbody tr:hover .status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Action Buttons - Simple Icons Only in One Line */
+.modules-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+  padding: 15px;
+  vertical-align: middle;
+  min-width: 100px;
+}
+
+.modules-table th:last-child {
+  text-align: center;
+  min-width: 100px;
+}
+
+.btn-view,
+.btn-edit,
+.btn-delete {
+  background: none !important;
+  border: none !important;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 2px; 
+  transition: none !important;
+  color: inherit;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  min-width: 24px;
+  height: 24px;
+}
+
+.btn-view {
+  margin-right: 4px !important;
+}
+
+.btn-edit {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.btn-delete {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Mobile Responsive for Action Buttons */
+@media (max-width: 768px) {
+  .modules-table td:last-child {
+    padding: 12px 8px;
+    min-width: 80px;
+  }
+  
+  .modules-table th:last-child {
+    min-width: 80px;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    font-size: 12px;
+    min-width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modules-table td:last-child {
+    padding: 10px 6px;
+    min-width: 70px;
+  }
+  
+  .modules-table th:last-child {
+    min-width: 70px;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+  }
+}
+
+.btn-view:hover,
+.btn-edit:hover,
+.btn-delete:hover {
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-view:disabled,
+.btn-edit:disabled,
+.btn-delete:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Add Button */
+.btn-add {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-add:hover {
+  background-color: #5855f0;
+}
+
+.btn-add:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+  gap: 20px;
+}
+
+.pagination-info {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination-btn {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: #ccc;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #404040;
+  color: #fff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 2px;
+  margin: 0 10px;
+}
+
+.pagination-number {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: #ccc;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+  min-width: 40px;
+  text-align: center;
+}
+
+.pagination-number:hover {
+  background-color: #404040;
+  color: #fff;
+}
+
+.pagination-number.active {
+  background-color: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+
+/* Mobile Responsive for Pagination */
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .pagination-info {
+    font-size: 13px;
+    text-align: center;
+  }
+  
+  .pagination-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .pagination-number {
+    padding: 6px 10px;
+    font-size: 13px;
+    min-width: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .pagination-number {
+    padding: 5px 8px;
+    font-size: 12px;
+    min-width: 30px;
+  }
+  
+  .pagination-info {
+    font-size: 12px;
+  }
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #ccc;
+  font-style: italic;
+}
+
+/* Clear Search Button in No Data Message */
+.btn-clear-search {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-clear-search:hover {
+  background-color: #5a67d8;
+}
+
+/* Custom Scrollbar Styling */
+.modules-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modules-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.modules-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.8) 0%, 
+    rgba(168, 85, 247, 0.8) 100%);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.modules-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 1) 0%, 
+    rgba(168, 85, 247, 1) 100%);
+  background-clip: content-box;
+}
+
+.modules-list::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Firefox Scrollbar */
+.modules-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+}
+
+/* Focus states for accessibility */
+.btn-add:focus,
+.btn-view:focus,
+.btn-edit:focus,
+.btn-delete:focus,
+.search-input:focus,
+.pagination-btn:focus,
+.pagination-number:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Remove old styles */
+.page-content {
+  display: none;
+}
+
+/* Additional mobile fixes */
+@media (max-width: 480px) {
+  .modules-list {
+    overflow-x: auto;
+  }
+  
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .modules-table {
+    font-size: 12px;
+  }
+  
+  .modules-table th,
+  .modules-table td {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+  
+  .module-name,
+  .module-description {
+    font-size: 11px;
+  }
+  
+  .status {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+}

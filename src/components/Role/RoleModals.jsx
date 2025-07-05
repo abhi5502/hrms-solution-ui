@@ -215,7 +215,7 @@ export const ViewRoleModal = ({ isOpen, onClose, role }) => {
             </div>
 
             <div className="detail-row">
-              <label>Status:</label>
+              <span className="detail-label">Status:</span>
               <span className={`status ${role.status.toLowerCase()}`}>
                 {role.status}
               </span>

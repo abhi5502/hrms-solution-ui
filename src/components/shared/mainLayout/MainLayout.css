@@ -4,12 +4,6 @@
   background-color: #f8f9fa;
   min-height: calc(100vh - 120px); /* Account for header and footer */
   overflow-y: auto;
-}ontent {
-  flex: 1;
-  padding: 20px;
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 120px); /* Account for header and footer */
-  overflow-y: auto;
 }
 
 .dashboard-header {
@@ -160,26 +154,8 @@
 }
 
 .page-content {
-  padding: 20px;
-  background-color: #281e24;
-  min-height: 100vh;
-}
-
-.page-content h1 {
-  color: white;
-  font-size: 28px;
-  margin: 0 0 20px 0;
-}
-
-.page-content p {
-  color: white;
-  font-size: 16px;
-}
-
-/* Page content styling for placeholder pages */
-.page-content {
-  background: white;
   padding: 30px;
+  background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   min-height: 400px;

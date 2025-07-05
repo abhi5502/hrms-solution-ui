@@ -11,6 +11,7 @@ import { Employee } from "./components/Employee/employee";
 import { User } from "./components/User/user";
 import { Role } from "./components/Role/role";
 import { Permission } from "./components/Permission/permission";
+import { Module } from "./components/Module/module";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/users" element={<User />} />
                 <Route path="/roles" element={<Role />} />
                 <Route path="/permissions" element={<Permission />} />
+                <Route path="/modules" element={<Module />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/" element={<Dashboard />} />
                 <Route

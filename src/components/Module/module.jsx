@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
-  PermissionFormModal,
+  ModuleFormModal,
   DeleteConfirmModal,
-  ViewPermissionModal,
-} from "./PermissionModals";
-import "./permission.css";
+  ViewModuleModal,
+} from "./ModuleModals";
+import "./module.css";
 
 // Skeleton Loading Component
-const PermissionsSkeleton = () => (
-  <div className="permission-container">
+const ModulesSkeleton = () => (
+  <div className="module-container">
     <div className="page-header">
       <div className="skeleton-title"></div>
       <div className="skeleton-button"></div>
     </div>
 
-    <div className="permissions-list">
-      <div className="permission-list-header">
-        <h5>Permission-List</h5>
+    <div className="modules-list">
+      <div className="module-list-header">
+        <h5>Module-List</h5>
         <div className="search-container">
           <div className="search-box">
             <input
               type="text"
               className="search-input"
-              placeholder="Search by permission name..."
+              placeholder="Search by module name..."
               disabled
             />
           </div>
@@ -34,8 +34,8 @@ const PermissionsSkeleton = () => (
         <div className="skeleton-table">
           <div className="skeleton-table-header">
             <div>S.No</div>
-            <div>Permission Name</div>
-            <div>Action</div>
+            <div>Module Name</div>
+            <div>Description</div>
             <div>Status</div>
             <div>Actions</div>
           </div>
@@ -43,7 +43,7 @@ const PermissionsSkeleton = () => (
             <div key={`skeleton-${index}`} className="skeleton-row">
               <div className="skeleton-cell serial"></div>
               <div className="skeleton-cell name"></div>
-              <div className="skeleton-cell action"></div>
+              <div className="skeleton-cell description"></div>
               <div className="skeleton-cell status"></div>
               <div className="skeleton-cell actions"></div>
             </div>
@@ -54,8 +54,8 @@ const PermissionsSkeleton = () => (
   </div>
 );
 
-export const Permission = () => {
-  const [permissions, setPermissions] = useState([]);
+export const Module = () => {
+  const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -73,33 +73,33 @@ export const Permission = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Modal states
-  const [isPermissionFormOpen, setIsPermissionFormOpen] = useState(false);
+  const [isModuleFormOpen, setIsModuleFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedPermission, setSelectedPermission] = useState(null);
-  const [editingPermission, setEditingPermission] = useState(null);
+  const [selectedModule, setSelectedModule] = useState(null);
+  const [editingModule, setEditingModule] = useState(null);
 
   useEffect(() => {
-    fetchPermissions();
+    fetchModules();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchPermissions = async () => {
+  const fetchModules = async () => {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://localhost:7777/gateway/Permissions/permissions-all"
+        "https://localhost:7777/gateway/Module/getall-module"
       );
       const result = await response.json();
 
       if (result.success) {
-        setPermissions(result.data);
+        setModules(result.data);
         setTotalPages(Math.ceil(result.data.length / itemsPerPage));
       } else {
-        setError("Failed to fetch permissions");
+        toast.error("Failed to fetch modules");
       }
     } catch (err) {
-      setError("Error connecting to server");
-      console.error("Error fetching permissions:", err);
+      toast.error("Error connecting to server");
+      console.error("Error fetching modules:", err);
     } finally {
       setLoading(false);
     }
@@ -116,20 +116,20 @@ export const Permission = () => {
     setCurrentPage(1); // Reset to first page when sorting
   };
 
-  // Get filtered permissions based on search
-  const getFilteredPermissions = () => {
+  // Get filtered modules based on search
+  const getFilteredModules = () => {
     if (!searchTerm.trim()) {
-      return permissions;
+      return modules;
     }
 
-    return permissions.filter((permission) =>
-      permission.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return modules.filter((module) =>
+      module.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  // Get sorted permissions
-  const getSortedPermissions = () => {
-    return [...getFilteredPermissions()].sort((a, b) => {
+  // Get sorted modules
+  const getSortedModules = () => {
+    return [...getFilteredModules()].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
@@ -149,12 +149,12 @@ export const Permission = () => {
     });
   };
 
-  // Get paginated permissions
-  const getPaginatedPermissions = () => {
-    const sortedPermissions = getSortedPermissions();
+  // Get paginated modules
+  const getPaginatedModules = () => {
+    const sortedModules = getSortedModules();
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return sortedPermissions.slice(startIndex, endIndex);
+    return sortedModules.slice(startIndex, endIndex);
   };
 
   // Pagination handlers
@@ -170,12 +170,12 @@ export const Permission = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  // Update total pages when permissions or search term change
+  // Update total pages when modules or search term change
   React.useEffect(() => {
-    const filteredPermissions = getFilteredPermissions();
-    setTotalPages(Math.ceil(filteredPermissions.length / itemsPerPage));
+    const filteredModules = getFilteredModules();
+    setTotalPages(Math.ceil(filteredModules.length / itemsPerPage));
     setCurrentPage(1); // Reset to first page when search changes
-  }, [permissions, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [modules, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Search handler
   const handleSearch = (e) => {
@@ -205,53 +205,53 @@ export const Permission = () => {
   };
 
   // Modal handlers
-  const handleAddPermission = () => {
+  const handleAddModule = () => {
     setError(null); // Clear any previous errors
-    setEditingPermission(null);
-    setIsPermissionFormOpen(true);
+    setEditingModule(null);
+    setIsModuleFormOpen(true);
   };
 
-  const handleEditPermission = (permission) => {
+  const handleEditModule = (module) => {
     setError(null); // Clear any previous errors
-    setEditingPermission(permission);
-    setIsPermissionFormOpen(true);
+    setEditingModule(module);
+    setIsModuleFormOpen(true);
   };
 
-  const handleDeletePermission = (permission) => {
-    setSelectedPermission(permission);
+  const handleDeleteModule = (module) => {
+    setSelectedModule(module);
     setIsDeleteModalOpen(true);
   };
 
-  const handleViewPermission = (permission) => {
-    setSelectedPermission(permission);
+  const handleViewModule = (module) => {
+    setSelectedModule(module);
     setIsViewModalOpen(true);
   };
 
   // API handlers
-  // Helper: Check for duplicate permission name
-  const isDuplicatePermission = (name, excludeId = null) => {
-    return permissions.some(
-      (permission) =>
-        (excludeId ? permission.id !== excludeId : true) &&
-        permission.name.toLowerCase().trim() === name.toLowerCase().trim()
+  // Helper: Check for duplicate module name
+  const isDuplicateModule = (name, excludeId = null) => {
+    return modules.some(
+      (module) =>
+        (excludeId ? module.id !== excludeId : true) &&
+        module.name.toLowerCase().trim() === name.toLowerCase().trim()
     );
   };
 
   // Helper: Handle API response for create/update
-  const handlePermissionApiResponse = async (
+  const handleModuleApiResponse = async (
     response,
-    permissionData,
+    moduleData,
     successMsg,
-    fetchPermissionsCallback
+    fetchModulesCallback
   ) => {
     const result = await response.json();
     if (result.success && (!result.statusCode || result.statusCode === 200)) {
-      await fetchPermissionsCallback();
+      await fetchModulesCallback();
       toast.success(successMsg);
       return true;
     } else if (result.statusCode === 409 || response.status === 409) {
       toast.error(
-        `Permission "${permissionData.name}" already exists! Please choose a different name.`
+        `Module "${moduleData.name}" already exists! Please choose a different name.`
       );
     } else {
       toast.error(
@@ -266,18 +266,17 @@ export const Permission = () => {
     return false;
   };
 
-  // Helper: Update permission
-  const updatePermission = async (permissionData) => {
+  // Helper: Update module
+  const updateModule = async (moduleData) => {
     const requestData = {
-      id: editingPermission.id,
-      name: permissionData.name,
-      action: permissionData.action,
-      description: permissionData.description,
-      status: permissionData.status === "active",
+      id: editingModule.id,
+      name: moduleData.name,
+      description: moduleData.description,
+      status: moduleData.status === "active",
     };
 
     const response = await fetch(
-      "https://localhost:7777/gateway/Permissions/update-permission",
+      "https://localhost:7777/gateway/Module/module-update",
       {
         method: "PUT",
         headers: {
@@ -291,88 +290,87 @@ export const Permission = () => {
       const errorText = await response.text();
       console.error("Response error:", errorText);
       toast.error(
-        `Failed to update permission: ${response.status} ${response.statusText}`
+        `Failed to update module: ${response.status} ${response.statusText}`
       );
       return false;
     }
 
-    return await handlePermissionApiResponse(
+    return await handleModuleApiResponse(
       response,
-      permissionData,
-      "Permission updated successfully!",
-      fetchPermissions
+      moduleData,
+      "Module updated successfully!",
+      fetchModules
     );
   };
 
-  // Helper: Create permission
-  const createPermission = async (permissionData) => {
+  // Helper: Create module
+  const createModule = async (moduleData) => {
     const response = await fetch(
-      "https://localhost:7777/gateway/Permissions/create-permission",
+      "https://localhost:7777/gateway/Module/create-module",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: permissionData.name,
-          action: permissionData.action,
-          description: permissionData.description,
+          name: moduleData.name,
+          description: moduleData.description,
         }),
       }
     );
 
-    return await handlePermissionApiResponse(
+    return await handleModuleApiResponse(
       response,
-      permissionData,
-      "Permission created successfully!",
-      fetchPermissions
+      moduleData,
+      "Module created successfully!",
+      fetchModules
     );
   };
 
-  const handleSavePermission = async (permissionData) => {
+  const handleSaveModule = async (moduleData) => {
     try {
       setOperationLoading(true);
       let operationSuccessful = false;
 
-      if (editingPermission) {
-        // Update existing permission - Check for duplicates (excluding current permission)
-        if (isDuplicatePermission(permissionData.name, editingPermission.id)) {
+      if (editingModule) {
+        // Update existing module - Check for duplicates (excluding current module)
+        if (isDuplicateModule(moduleData.name, editingModule.id)) {
           toast.error(
-            `Permission "${permissionData.name}" already exists! Please choose a different name.`
+            `Module "${moduleData.name}" already exists! Please choose a different name.`
           );
           return;
         }
-        operationSuccessful = await updatePermission(permissionData);
+        operationSuccessful = await updateModule(moduleData);
       } else {
-        // Add new permission - Check for duplicates first
-        if (isDuplicatePermission(permissionData.name)) {
+        // Add new module - Check for duplicates first
+        if (isDuplicateModule(moduleData.name)) {
           toast.error(
-            `Permission "${permissionData.name}" already exists! Please choose a different name.`
+            `Module "${moduleData.name}" already exists! Please choose a different name.`
           );
           return;
         }
-        operationSuccessful = await createPermission(permissionData);
+        operationSuccessful = await createModule(moduleData);
       }
 
       // Only close modal and clear editing state if the operation was successful
       if (operationSuccessful) {
-        setIsPermissionFormOpen(false);
-        setEditingPermission(null);
+        setIsModuleFormOpen(false);
+        setEditingModule(null);
       }
     } catch (err) {
-      toast.error("Error saving permission. Please try again.");
-      console.error("Error saving permission:", err);
+      toast.error("Error saving module. Please try again.");
+      console.error("Error saving module:", err);
     } finally {
       setOperationLoading(false);
     }
   };
 
-  const handleConfirmDelete = async (permissionId) => {
+  const handleConfirmDelete = async (moduleId) => {
     try {
       setOperationLoading(true);
 
       const response = await fetch(
-        `https://localhost:7777/gateway/Permissions/delete/${permissionId}`,
+        `https://localhost:7777/gateway/Module/delete-module/${moduleId}`,
         {
           method: "DELETE",
         }
@@ -380,54 +378,54 @@ export const Permission = () => {
 
       const result = await response.json();
       if (result.success) {
-        // Refresh the permissions list
-        await fetchPermissions();
-        toast.success("Permission deleted successfully!");
+        // Refresh the modules list
+        await fetchModules();
+        toast.success("Module deleted successfully!");
       } else {
-        toast.error("Failed to delete permission");
+        toast.error("Failed to delete module");
       }
 
       setIsDeleteModalOpen(false);
-      setSelectedPermission(null);
+      setSelectedModule(null);
     } catch (err) {
-      toast.error("Error deleting permission");
-      console.error("Error deleting permission:", err);
+      toast.error("Error deleting module");
+      console.error("Error deleting module:", err);
     } finally {
       setOperationLoading(false);
     }
   };
 
   if (loading) {
-    return <PermissionsSkeleton />;
+    return <ModulesSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="permission-container">
-        <h1>Permissions</h1>
+      <div className="module-container">
+        <h1>Modules</h1>
         <div className="error">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="permission-container">
+    <div className="module-container">
       <div className="page-header">
-        <h1>Permissions</h1>
-        <button className="btn-add" onClick={handleAddPermission}>
-          + Add Permission
+        <h1>Modules</h1>
+        <button className="btn-add" onClick={handleAddModule}>
+          + Add Module
         </button>
       </div>
 
-      <div className="permissions-list">
-        <div className="permission-list-header">
-          <h5>Permission-List</h5>
+      <div className="modules-list">
+        <div className="module-list-header">
+          <h5>Module-List</h5>
           <div className="search-container">
             <div className="search-box">
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search by permission name..."
+                placeholder="Search by module name..."
                 value={searchTerm}
                 onChange={handleSearch}
               />
@@ -442,7 +440,7 @@ export const Permission = () => {
 
         {searchTerm && (
           <div className="search-results-info">
-            {getFilteredPermissions().length} permission(s) found
+            {getFilteredModules().length} module(s) found
           </div>
         )}
 
@@ -451,7 +449,7 @@ export const Permission = () => {
             operationLoading ? "table-loading-overlay" : ""
           }`}
         >
-          <table className="permissions-table">
+          <table className="modules-table">
             <thead>
               <tr>
                 <th>S.No</th>
@@ -459,18 +457,18 @@ export const Permission = () => {
                   className={getSortClass("name")}
                   onClick={() => handleSort("name")}
                 >
-                  Permission Name{" "}
+                  Module Name{" "}
                   <span className="sort-indicator">
                     {getSortIndicator("name")}
                   </span>
                 </th>
                 <th
-                  className={getSortClass("action")}
-                  onClick={() => handleSort("action")}
+                  className={getSortClass("description")}
+                  onClick={() => handleSort("description")}
                 >
-                  Action{" "}
+                  Description{" "}
                   <span className="sort-indicator">
-                    {getSortIndicator("action")}
+                    {getSortIndicator("description")}
                   </span>
                 </th>
                 <th
@@ -486,41 +484,39 @@ export const Permission = () => {
               </tr>
             </thead>
             <tbody>
-              {getPaginatedPermissions().map((permission, index) => (
-                <tr key={permission.id}>
+              {getPaginatedModules().map((module, index) => (
+                <tr key={module.id}>
                   <td className="serial-no">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </td>
-                  <td className="permission-name">{permission.name}</td>
-                  <td className="permission-action">{permission.action}</td>
+                  <td className="module-name">{module.name}</td>
+                  <td className="module-description">{module.description}</td>
                   <td>
-                    <span
-                      className={`status ${permission.status.toLowerCase()}`}
-                    >
-                      {permission.status}
+                    <span className={`status ${module.status.toLowerCase()}`}>
+                      {module.status}
                     </span>
                   </td>
                   <td>
                     <button
                       className="btn-view"
-                      title="View Permission Details"
-                      onClick={() => handleViewPermission(permission)}
+                      title="View Module Details"
+                      onClick={() => handleViewModule(module)}
                       disabled={operationLoading}
                     >
                       👁️
                     </button>
                     <button
                       className="btn-edit"
-                      title="Edit Permission"
-                      onClick={() => handleEditPermission(permission)}
+                      title="Edit Module"
+                      onClick={() => handleEditModule(module)}
                       disabled={operationLoading}
                     >
                       ✏️
                     </button>
                     <button
                       className="btn-delete"
-                      title="Delete Permission"
-                      onClick={() => handleDeletePermission(permission)}
+                      title="Delete Module"
+                      onClick={() => handleDeleteModule(module)}
                       disabled={operationLoading}
                     >
                       🗑️
@@ -533,15 +529,15 @@ export const Permission = () => {
         </div>
 
         {/* Pagination */}
-        {getFilteredPermissions().length > 0 && (
+        {getFilteredModules().length > 0 && (
           <div className="pagination-container">
             <div className="pagination-info">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(
                 currentPage * itemsPerPage,
-                getFilteredPermissions().length
+                getFilteredModules().length
               )}{" "}
-              of {getFilteredPermissions().length} permissions
+              of {getFilteredModules().length} modules
               {searchTerm && " (filtered)"}
             </div>
 
@@ -585,9 +581,9 @@ export const Permission = () => {
           </div>
         )}
 
-        {getFilteredPermissions().length === 0 && permissions.length > 0 && (
+        {getFilteredModules().length === 0 && modules.length > 0 && (
           <div className="no-data">
-            No permissions found matching "{searchTerm}"
+            No modules found matching "{searchTerm}"
             <br />
             <button className="btn-clear-search" onClick={clearSearch}>
               Clear search
@@ -595,20 +591,20 @@ export const Permission = () => {
           </div>
         )}
 
-        {permissions.length === 0 && (
-          <div className="no-data">No permissions found</div>
+        {modules.length === 0 && (
+          <div className="no-data">No modules found</div>
         )}
       </div>
 
-      {/* Permission Form Modal */}
-      <PermissionFormModal
-        isOpen={isPermissionFormOpen}
+      {/* Module Form Modal */}
+      <ModuleFormModal
+        isOpen={isModuleFormOpen}
         onClose={() => {
-          setIsPermissionFormOpen(false);
-          setEditingPermission(null);
+          setIsModuleFormOpen(false);
+          setEditingModule(null);
         }}
-        permission={editingPermission}
-        onSave={handleSavePermission}
+        module={editingModule}
+        onSave={handleSaveModule}
       />
 
       {/* Delete Confirmation Modal */}
@@ -616,20 +612,20 @@ export const Permission = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
-          setSelectedPermission(null);
+          setSelectedModule(null);
         }}
-        permission={selectedPermission}
+        module={selectedModule}
         onConfirm={handleConfirmDelete}
       />
 
-      {/* View Permission Details Modal */}
-      <ViewPermissionModal
+      {/* View Module Details Modal */}
+      <ViewModuleModal
         isOpen={isViewModalOpen}
         onClose={() => {
           setIsViewModalOpen(false);
-          setSelectedPermission(null);
+          setSelectedModule(null);
         }}
-        permission={selectedPermission}
+        module={selectedModule}
       />
     </div>
   );
