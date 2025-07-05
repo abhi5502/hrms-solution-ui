@@ -12,6 +12,7 @@ import { User } from "./components/User/user";
 import { Role } from "./components/Role/role";
 import { Permission } from "./components/Permission/permission";
 import { Module } from "./components/Module/module";
+import ApiTest from "./components/ApiTest";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/modules" element={<Module />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/api-test" element={<ApiTest />} />
                 <Route
                   path="/departments"
                   element={
