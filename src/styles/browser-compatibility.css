@@ -1,0 +1,203 @@
+/* =================================
+   BROWSER COMPATIBILITY LAYER
+   ================================= */
+
+/* Cross-browser backdrop-filter support */
+@supports (backdrop-filter: blur(1px)) {
+  .modal-overlay {
+    backdrop-filter: blur(8px);
+  }
+  
+  .loading-overlay {
+    backdrop-filter: blur(4px);
+  }
+}
+
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .modal-overlay {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  
+  .loading-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* Cross-browser user-select support */
+.sortable,
+.btn-view,
+.btn-edit,
+.btn-delete,
+.pagination-btn,
+.pagination-number {
+  /* Standard */
+  user-select: none;
+  /* WebKit */
+  -webkit-user-select: none;
+  /* Mozilla */
+  -moz-user-select: none;
+  /* Microsoft */
+  -ms-user-select: none;
+}
+
+/* Cross-browser scrollbar styling */
+@supports (scrollbar-width: thin) {
+  .users-list,
+  .roles-list,
+  .permissions-list,
+  .modules-list,
+  .modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* WebKit scrollbar fallback */
+.users-list::-webkit-scrollbar,
+.roles-list::-webkit-scrollbar,
+.permissions-list::-webkit-scrollbar,
+.modules-list::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.users-list::-webkit-scrollbar-track,
+.roles-list::-webkit-scrollbar-track,
+.permissions-list::-webkit-scrollbar-track,
+.modules-list::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.users-list::-webkit-scrollbar-thumb,
+.roles-list::-webkit-scrollbar-thumb,
+.permissions-list::-webkit-scrollbar-thumb,
+.modules-list::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.8);
+  border-radius: 4px;
+}
+
+.users-list::-webkit-scrollbar-thumb:hover,
+.roles-list::-webkit-scrollbar-thumb:hover,
+.permissions-list::-webkit-scrollbar-thumb:hover,
+.modules-list::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 1);
+}
+
+/* Cross-browser background-clip support */
+.warning-icon {
+  background: linear-gradient(135deg, #f56565, #e53e3e);
+  /* Standard */
+  background-clip: text;
+  /* WebKit */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* Fallback for unsupported browsers */
+  color: #f56565;
+}
+
+/* Firefox min-height auto fix */
+@-moz-document url-prefix() {
+  .modal-content {
+    min-height: 200px;
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  .search-input,
+  .form-group input,
+  .form-group select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+/* IE/Edge fallbacks */
+@supports not (display: grid) {
+  .form-row,
+  .detail-grid,
+  .selection-grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .form-group,
+  .detail-item,
+  .checkbox-item {
+    flex: 1;
+    min-width: 250px;
+    margin: 10px;
+  }
+}
+
+/* Mobile Safari fixes */
+@supports (-webkit-touch-callout: none) {
+  .user-container,
+  .role-container,
+  .permission-container,
+  .module-container {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .btn-add,
+  .btn-save,
+  .btn-update,
+  .btn-delete,
+  .btn-cancel,
+  .btn-close {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+}
+
+/* Chrome/Edge specific fixes */
+@supports (display: -webkit-box) {
+  .table-wrapper {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Print media fixes */
+@media print {
+  .modal-overlay,
+  .sidebar,
+  .header,
+  .footer,
+  .btn-add,
+  .btn-edit,
+  .btn-delete,
+  .btn-view {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .users-table,
+  .roles-table,
+  .permissions-table,
+  .modules-table {
+    border: 1px solid #000 !important;
+  }
+  
+  .users-table th,
+  .users-table td,
+  .roles-table th,
+  .roles-table td,
+  .permissions-table th,
+  .permissions-table td,
+  .modules-table th,
+  .modules-table td {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

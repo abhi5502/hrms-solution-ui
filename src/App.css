@@ -1,3 +1,6 @@
+/* Import browser compatibility layer */
+@import './styles/browser-compatibility.css';
+
 * {
   margin: 0;
   padding: 0;

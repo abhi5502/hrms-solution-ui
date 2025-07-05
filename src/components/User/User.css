@@ -388,6 +388,10 @@
   /* Firefox Scrollbar */
   scrollbar-width: thin;
   scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+  /* Safari fallback */
+  -webkit-scrollbar: thin;
+  -webkit-scrollbar-track: rgba(0, 0, 0, 0.2);
+  -webkit-scrollbar-thumb: rgba(99, 102, 241, 0.8);
 }
 
 /* Mobile Responsive for Users List */
@@ -810,10 +814,15 @@
 }
 
 .users-list::-webkit-scrollbar-corner {
-/* Firefox Scrollbar */
-/* (Merged into the main .users-list selector above) */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Firefox Scrollbar - with fallback */
+@supports (scrollbar-width: thin) {
+  .users-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+  }
 }
 
 /* Table Wrapper for better scroll control */
@@ -854,7 +863,11 @@
 /* Sorting Styles */
 .sortable {
   cursor: pointer;
+  /* Cross-browser user-select */
   user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   transition: background-color 0.2s ease;
   position: relative;
 }
@@ -1432,6 +1445,72 @@ html, body {
   .alert-header,
   .alert-footer {
     padding: 12px 15px;
+  }
+}
+
+/* Role Badges in User Table */
+.roles-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.role-badge {
+  background: linear-gradient(135deg, #805ad5, #6b46c1);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(128, 90, 213, 0.3);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.role-more {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.no-roles {
+  color: #888;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Mobile Responsive for Role Badges */
+@media (max-width: 768px) {
+  .roles-display {
+    gap: 4px;
+  }
+  
+  .role-badge,
+  .role-more {
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .roles-display {
+    gap: 3px;
+  }
+  
+  .role-badge,
+  .role-more {
+    padding: 2px 5px;
+    font-size: 8px;
   }
 }
 

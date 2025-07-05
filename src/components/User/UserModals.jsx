@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import "./UserModals.css";
 
@@ -123,7 +124,6 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
       setLoading(true);
       try {
         await onSave(formData);
-        onClose();
       } catch (error) {
         console.error("Error saving user:", error);
       } finally {
@@ -157,197 +157,256 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
       ...formData,
       [fieldName]: newValues,
     });
+
+    // Clear error for this field
+    if (errors[fieldName]) {
+      setErrors({
+        ...errors,
+        [fieldName]: "",
+      });
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="modal-content user-form-modal">
         <div className="modal-header">
           <h2>{user ? "Edit User" : "Add New User"}</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="close-btn" onClick={onClose} type="button">
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="user-form">
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="email">Email *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={errors.email ? "error" : ""}
-                placeholder="Enter email"
-              />
-              {errors.email && <span className="error-message">{errors.email}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="userName">Username</label>
-              <input
-                type="text"
-                id="userName"
-                name="userName"
-                value={formData.userName}
-                onChange={handleInputChange}
-                placeholder="Enter username"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="firstName">First Name *</label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className={errors.firstName ? "error" : ""}
-                placeholder="Enter first name"
-              />
-              {errors.firstName && <span className="error-message">{errors.firstName}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="middleName">Middle Name</label>
-              <input
-                type="text"
-                id="middleName"
-                name="middleName"
-                value={formData.middleName}
-                onChange={handleInputChange}
-                placeholder="Enter middle name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="lastName">Last Name *</label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className={errors.lastName ? "error" : ""}
-                placeholder="Enter last name"
-              />
-              {errors.lastName && <span className="error-message">{errors.lastName}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="country">Country *</label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                className={errors.country ? "error" : ""}
-                placeholder="Enter country"
-              />
-              {errors.country && <span className="error-message">{errors.country}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="phoneNumber">Phone Number *</label>
-              <input
-                type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className={errors.phoneNumber ? "error" : ""}
-                placeholder="Enter phone number"
-              />
-              {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="gender">Gender</label>
-              <select
-                id="gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-              >
-                <option value={0}>Male</option>
-                <option value={1}>Female</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Roles Section */}
-          <div className="form-section">
-            <h3>Roles *</h3>
-            <div className="checkbox-grid">
-              {availableRoles.map((role) => (
-                <label key={role.id} className="checkbox-label">
+        <div className="modal-body">
+          <form onSubmit={handleSubmit} className="user-form">
+            {/* Basic Information Section */}
+            <div className="form-section">
+              <h3 className="form-section-title">Basic Information</h3>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="email" className="required-field">Email</label>
                   <input
-                    type="checkbox"
-                    checked={formData.roleIds.includes(role.id)}
-                    onChange={(e) =>
-                      handleCheckboxChange("role", role.id, e.target.checked)
-                    }
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={errors.email ? "error" : ""}
+                    placeholder="Enter email address"
                   />
-                  {role.name}
-                </label>
-              ))}
-            </div>
-            {errors.roleIds && <span className="error-message">{errors.roleIds}</span>}
-          </div>
+                  {errors.email && <span className="error-text">{errors.email}</span>}
+                </div>
 
-          {/* Permissions Section */}
-          <div className="form-section">
-            <h3>Permissions</h3>
-            <div className="checkbox-grid">
-              {availablePermissions.map((permission) => (
-                <label key={permission.id} className="checkbox-label">
+                <div className="form-group">
+                  <label htmlFor="userName">Username</label>
                   <input
-                    type="checkbox"
-                    checked={formData.permissionIds.includes(permission.id)}
-                    onChange={(e) =>
-                      handleCheckboxChange("permission", permission.id, e.target.checked)
-                    }
+                    type="text"
+                    id="userName"
+                    name="userName"
+                    value={formData.userName}
+                    onChange={handleInputChange}
+                    placeholder="Enter username"
                   />
-                  {permission.name}
-                </label>
-              ))}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Modules Section */}
-          <div className="form-section">
-            <h3>Modules</h3>
-            <div className="checkbox-grid">
-              {availableModules.map((module) => (
-                <label key={module.id} className="checkbox-label">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="firstName" className="required-field">First Name</label>
                   <input
-                    type="checkbox"
-                    checked={formData.moduleIds.includes(module.id)}
-                    onChange={(e) =>
-                      handleCheckboxChange("module", module.id, e.target.checked)
-                    }
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className={errors.firstName ? "error" : ""}
+                    placeholder="Enter first name"
                   />
-                  {module.name}
-                </label>
-              ))}
-            </div>
-          </div>
+                  {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+                </div>
 
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Cancel
-            </button>
-            <button type="submit" className="btn-save" disabled={loading}>
-              {loading ? "Saving..." : user ? "Update User" : "Create User"}
-            </button>
-          </div>
-        </form>
+                <div className="form-group">
+                  <label htmlFor="middleName">Middle Name</label>
+                  <input
+                    type="text"
+                    id="middleName"
+                    name="middleName"
+                    value={formData.middleName}
+                    onChange={handleInputChange}
+                    placeholder="Enter middle name (optional)"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="lastName" className="required-field">Last Name</label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className={errors.lastName ? "error" : ""}
+                    placeholder="Enter last name"
+                  />
+                  {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="gender">Gender</label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                  >
+                    <option value={0}>Male</option>
+                    <option value={1}>Female</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phoneNumber" className="required-field">Phone Number</label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className={errors.phoneNumber ? "error" : ""}
+                    placeholder="Enter phone number"
+                  />
+                  {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="country" className="required-field">Country</label>
+                  <input
+                    type="text"
+                    id="country"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className={errors.country ? "error" : ""}
+                    placeholder="Enter country"
+                  />
+                  {errors.country && <span className="error-text">{errors.country}</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* Roles Section */}
+            <div className="form-section">
+              <h3 className="form-section-title">Roles *</h3>
+              {errors.roleIds && <span className="error-text">{errors.roleIds}</span>}
+              
+              <div className="selection-grid">
+                {availableRoles.map((role) => (
+                  <div
+                    key={role.id}
+                    className={`checkbox-item ${
+                      formData.roleIds.includes(role.id) ? "selected" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`role-${role.id}`}
+                      checked={formData.roleIds.includes(role.id)}
+                      onChange={(e) =>
+                        handleCheckboxChange("role", role.id, e.target.checked)
+                      }
+                    />
+                    <label htmlFor={`role-${role.id}`} className="checkbox-label">
+                      {role.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Permissions Section */}
+            <div className="form-section">
+              <h3 className="form-section-title">Permissions</h3>
+              
+              <div className="selection-grid">
+                {availablePermissions.map((permission) => (
+                  <div
+                    key={permission.id}
+                    className={`checkbox-item ${
+                      formData.permissionIds.includes(permission.id) ? "selected" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`permission-${permission.id}`}
+                      checked={formData.permissionIds.includes(permission.id)}
+                      onChange={(e) =>
+                        handleCheckboxChange("permission", permission.id, e.target.checked)
+                      }
+                    />
+                    <label htmlFor={`permission-${permission.id}`} className="checkbox-label">
+                      {permission.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modules Section */}
+            <div className="form-section">
+              <h3 className="form-section-title">Modules</h3>
+              
+              <div className="selection-grid">
+                {availableModules.map((module) => (
+                  <div
+                    key={module.id}
+                    className={`checkbox-item ${
+                      formData.moduleIds.includes(module.id) ? "selected" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`module-${module.id}`}
+                      checked={formData.moduleIds.includes(module.id)}
+                      onChange={(e) =>
+                        handleCheckboxChange("module", module.id, e.target.checked)
+                      }
+                    />
+                    <label htmlFor={`module-${module.id}`} className="checkbox-label">
+                      {module.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="modal-footer">
+          <button 
+            type="button" 
+            className="btn-cancel" 
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className={`${user ? "btn-update" : "btn-save"} ${loading ? "btn-loading" : ""}`}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {/* eslint-disable-next-line no-nested-ternary */}
+            {loading ? "Saving..." : (user ? "Update User" : "Create User")}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -359,97 +418,107 @@ export const UserViewModal = ({ isOpen, onClose, user }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="modal-content user-view-modal">
         <div className="modal-header">
           <h2>User Details</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="close-btn" onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div className="user-details">
-          <div className="detail-row">
-            <label>Full Name:</label>
-            <span>{user.fullName}</span>
-          </div>
-          <div className="detail-row">
-            <label>Email:</label>
-            <span>{user.email}</span>
-          </div>
-          <div className="detail-row">
-            <label>Username:</label>
-            <span>{user.userName}</span>
-          </div>
-          <div className="detail-row">
-            <label>Phone:</label>
-            <span>{user.phoneNumber}</span>
-          </div>
-          <div className="detail-row">
-            <label>Gender:</label>
-            <span>{user.gender}</span>
-          </div>
-          <div className="detail-row">
-            <label>Country:</label>
-            <span>{user.country}</span>
-          </div>
-          <div className="detail-row">
-            <label>Status:</label>
-            <span className={`status ${user.status?.toLowerCase()}`}>
-              {user.status}
-            </span>
-          </div>
-          <div className="detail-row">
-            <label>Roles:</label>
-            <div className="roles-display">
-              {user.roles?.map((role, index) => (
-                <span key={index} className="role-badge">
-                  {role}
-                </span>
-              )) || <span>No roles assigned</span>}
-            </div>
-          </div>
-          <div className="detail-row">
-            <label>Permissions:</label>
-            <div className="permissions-display">
-              {user.permissions?.length > 0 ? (
-                user.permissions.map((permission, index) => (
-                  <span key={index} className="permission-badge">
-                    {permission}
+        <div className="modal-body">
+          <div className="user-details">
+            {/* Personal Information */}
+            <div className="detail-section">
+              <h3>Personal Information</h3>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Full Name</label>
+                  <span>{user.fullName || `${user.firstName} ${user.lastName}`}</span>
+                </div>
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Email</label>
+                  <span>{user.email}</span>
+                </div>
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Phone</label>
+                  <span>{user.phoneNumber || "N/A"}</span>
+                </div>
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Gender</label>
+                  <span>{user.gender || "N/A"}</span>
+                </div>
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Country</label>
+                  <span>{user.country || "N/A"}</span>
+                </div>
+                <div className="detail-item">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>Status</label>
+                  <span className={`status ${user.status?.toLowerCase()}`}>
+                    {user.status || "Unknown"}
                   </span>
-                ))
-              ) : (
-                <span>No permissions assigned</span>
-              )}
+                </div>
+              </div>
+            </div>
+
+            {/* Roles */}
+            <div className="detail-section">
+              <h3>Assigned Roles</h3>
+              <div className="badges-display">
+                {user.roles?.length > 0 ? (
+                  user.roles.map((role, index) => (
+                    <span key={`role-${index}-${role}`} className="role-badge">
+                      {role}
+                    </span>
+                  ))
+                ) : (
+                  <span>No roles assigned</span>
+                )}
+              </div>
+            </div>
+
+            {/* Permissions */}
+            <div className="detail-section">
+              <h3>Permissions</h3>
+              <div className="badges-display">
+                {user.permissions?.length > 0 ? (
+                  user.permissions.map((permission, index) => (
+                    <span key={`permission-${index}-${permission}`} className="permission-badge">
+                      {permission}
+                    </span>
+                  ))
+                ) : (
+                  <span>No permissions assigned</span>
+                )}
+              </div>
+            </div>
+
+            {/* Modules */}
+            <div className="detail-section">
+              <h3>Accessible Modules</h3>
+              <div className="badges-display">
+                {user.modules?.length > 0 ? (
+                  user.modules.map((module, index) => (
+                    <span key={`module-${index}-${module}`} className="module-badge">
+                      {module}
+                    </span>
+                  ))
+                ) : (
+                  <span>No modules assigned</span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="detail-row">
-            <label>Modules:</label>
-            <div className="modules-display">
-              {user.modules?.length > 0 ? (
-                user.modules.map((module, index) => (
-                  <span key={index} className="module-badge">
-                    {module}
-                  </span>
-                ))
-              ) : (
-                <span>No modules assigned</span>
-              )}
-            </div>
-          </div>
-          <div className="detail-row">
-            <label>Created Date:</label>
-            <span>{new Date(user.createdDate).toLocaleDateString()}</span>
-          </div>
-          {user.modifiedDate && (
-            <div className="detail-row">
-              <label>Modified Date:</label>
-              <span>{new Date(user.modifiedDate).toLocaleDateString()}</span>
-            </div>
-          )}
         </div>
 
         <div className="modal-footer">
-          <button className="btn-cancel" onClick={onClose}>
+          <button className="btn-close" onClick={onClose}>
             Close
           </button>
         </div>
@@ -463,14 +532,15 @@ export const DeleteConfirmModal = ({ isOpen, onClose, user, onConfirm }) => {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      await onConfirm(user.id);
-      onClose();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    } finally {
-      setLoading(false);
+    if (user) {
+      setLoading(true);
+      try {
+        await onConfirm(user.id);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -481,28 +551,36 @@ export const DeleteConfirmModal = ({ isOpen, onClose, user, onConfirm }) => {
       <div className="modal-content delete-modal">
         <div className="modal-header">
           <h2>Confirm Delete</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="close-btn" onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div className="delete-content">
-          <div className="warning-icon">⚠️</div>
-          <p>Are you sure you want to delete this user?</p>
-          <div className="user-info">
-            <strong>{user.fullName}</strong>
-            <span>{user.email}</span>
+        <div className="modal-body">
+          <div className="delete-content">
+            <div className="warning-icon">⚠️</div>
+            <h3>Delete User</h3>
+            <p>Are you sure you want to delete this user?</p>
+            <p><strong>{user.fullName || user.email}</strong></p>
+            <div className="warning-text">
+              This action cannot be undone. All user data will be permanently removed.
+            </div>
           </div>
-          <p className="warning-text">
-            This action cannot be undone. The user will be permanently removed from the system.
-          </p>
         </div>
 
         <div className="modal-footer">
-          <button className="btn-cancel" onClick={onClose} disabled={loading}>
+          <button 
+            className="btn-cancel" 
+            onClick={onClose}
+            disabled={loading}
+          >
             Cancel
           </button>
-          <button className="btn-delete" onClick={handleConfirm} disabled={loading}>
+          <button
+            className={`btn-delete ${loading ? "btn-loading" : ""}`}
+            onClick={handleConfirm}
+            disabled={loading}
+          >
             {loading ? "Deleting..." : "Delete User"}
           </button>
         </div>
