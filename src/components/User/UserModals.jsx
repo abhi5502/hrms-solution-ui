@@ -588,3 +588,432 @@ export const DeleteConfirmModal = ({ isOpen, onClose, user, onConfirm }) => {
     </div>
   );
 };
+
+// Single User Assignment Modal
+export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
+  const [activeTab, setActiveTab] = useState("roles");
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState({
+    roleIds: [],
+    permissionIds: [],
+    moduleIds: [],
+  });
+
+  const [availableRoles, setAvailableRoles] = useState([]);
+  const [availablePermissions, setAvailablePermissions] = useState([]);
+  const [availableModules, setAvailableModules] = useState([]);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      fetchAssignmentData();
+      setFormData({
+        roleIds: user.roleIds || [],
+        permissionIds: user.permissionIds || [],
+        moduleIds: user.moduleIds || [],
+      });
+      setSearchTerm(""); // Clear search when modal opens
+    }
+  }, [isOpen, user]);
+
+  // Clear search when tab changes
+  useEffect(() => {
+    setSearchTerm("");
+  }, [activeTab]);
+
+  const fetchAssignmentData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch roles
+      const rolesResponse = await fetch("https://localhost:7777/gateway/Roles/get-all-role");
+      const rolesResult = await rolesResponse.json();
+      console.log("Roles API Response:", rolesResult);
+      if (rolesResult.success) {
+        setAvailableRoles(rolesResult.data || []);
+        console.log("Available Roles:", rolesResult.data);
+      } else {
+        console.error("Roles API Error:", rolesResult.message);
+      }
+
+      // Fetch permissions - Updated endpoint
+      const permissionsResponse = await fetch("https://localhost:7777/gateway/Permissions/permissions-all");
+      const permissionsResult = await permissionsResponse.json();
+      console.log("Permissions API Response:", permissionsResult);
+      if (permissionsResult.success) {
+        setAvailablePermissions(permissionsResult.data || []);
+        console.log("Available Permissions:", permissionsResult.data);
+      } else {
+        console.error("Permissions API Error:", permissionsResult.message);
+      }
+
+      // Fetch modules - Updated endpoint
+      const modulesResponse = await fetch("https://localhost:7777/gateway/Module/getall-module");
+      const modulesResult = await modulesResponse.json();
+      console.log("Modules API Response:", modulesResult);
+      if (modulesResult.success) {
+        setAvailableModules(modulesResult.data || []);
+        console.log("Available Modules:", modulesResult.data);
+      } else {
+        console.error("Modules API Error:", modulesResult.message);
+      }
+    } catch (error) {
+      console.error("Error fetching assignment data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleItemToggle = (itemId, type) => {
+    setFormData(prev => ({
+      ...prev,
+      [type]: prev[type].includes(itemId)
+        ? prev[type].filter(id => id !== itemId)
+        : [...prev[type], itemId]
+    }));
+  };
+
+  const handleAssignAll = (type) => {
+    const { items } = getCurrentItems();
+    const allIds = items.map(item => item.id);
+    
+    setFormData(prev => ({
+      ...prev,
+      [type]: [...new Set([...prev[type], ...allIds])]
+    }));
+  };
+
+  const handleRemoveAll = (type) => {
+    const { items } = getCurrentItems();
+    const itemIds = items.map(item => item.id);
+    
+    setFormData(prev => ({
+      ...prev,
+      [type]: prev[type].filter(id => !itemIds.includes(id))
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await onSave(user.id, formData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving assignment:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Search functionality
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+  };
+
+  // Keyboard shortcuts
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      clearSearch();
+    }
+  };
+
+  // Filter items based on search term
+  const getFilteredItems = (items, searchTerm) => {
+    if (!searchTerm.trim()) {
+      return items;
+    }
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    return items.filter(item => {
+      const name = (item.name || "").toLowerCase();
+      const description = (item.description || "").toLowerCase();
+      const action = (item.action || "").toLowerCase();
+      
+      return name.includes(lowerSearchTerm) || 
+             description.includes(lowerSearchTerm) || 
+             action.includes(lowerSearchTerm);
+    });
+  };
+
+  const getCurrentItems = () => {
+    let items = [];
+    let assignedIds = [];
+    
+    if (activeTab === "roles") {
+      items = availableRoles;
+      assignedIds = formData.roleIds;
+    } else if (activeTab === "permissions") {
+      items = availablePermissions;
+      assignedIds = formData.permissionIds;
+    } else if (activeTab === "modules") {
+      items = availableModules;
+      assignedIds = formData.moduleIds;
+    }
+    
+    return {
+      items: getFilteredItems(items, searchTerm),
+      assignedIds,
+      type: activeTab === "roles" ? "roleIds" : 
+            activeTab === "permissions" ? "permissionIds" : "moduleIds"
+    };
+  };
+
+  const renderItems = (items, type, assignedIds) => {
+    return items.map(item => {
+      // Get name based on item type
+      let itemName = "";
+      let itemDescription = "";
+      
+      if (type === "roleIds") {
+        itemName = item.name || "";
+        itemDescription = item.description || "Role access permissions";
+      } else if (type === "permissionIds") {
+        itemName = item.name || "";
+        itemDescription = item.action || item.description || "Permission action";
+      } else if (type === "moduleIds") {
+        itemName = item.name || "";
+        itemDescription = item.description || "Module functionality";
+      }
+
+      return (
+        <div
+          key={item.id}
+          className={`assignment-item ${assignedIds.includes(item.id) ? 'assigned' : ''}`}
+          onClick={() => handleItemToggle(item.id, type)}
+        >
+          <div className="item-info">
+            <h4>{highlightSearchTerm(itemName)}</h4>
+            <p>{highlightSearchTerm(itemDescription)}</p>
+          </div>
+          <div className="item-status">
+            {assignedIds.includes(item.id) ? (
+              <span className="status-assigned">✓ Assigned</span>
+            ) : (
+              <span className="status-unassigned">+ Assign</span>
+            )}
+          </div>
+        </div>
+      );
+    });
+  };
+
+  // Highlight search terms in text
+  const highlightSearchTerm = (text) => {
+    if (!searchTerm.trim() || !text) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} className="search-highlight">{part}</span>
+      ) : (
+        part
+      )
+    );
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content assignment-modal">
+        <div className="modal-header">
+          <h3>Assign to {user?.fullName}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="assignment-tabs">
+          <button
+            className={`tab-button ${activeTab === "roles" ? "active" : ""}`}
+            onClick={() => setActiveTab("roles")}
+          >
+            Roles ({formData.roleIds.length})
+          </button>
+          <button
+            className={`tab-button ${activeTab === "permissions" ? "active" : ""}`}
+            onClick={() => setActiveTab("permissions")}
+          >
+            Permissions ({formData.permissionIds.length})
+          </button>
+          <button
+            className={`tab-button ${activeTab === "modules" ? "active" : ""}`}
+            onClick={() => setActiveTab("modules")}
+          >
+            Modules ({formData.moduleIds.length})
+          </button>
+        </div>
+
+        {/* Common Search Box */}
+        <div className="search-section">
+          <div className="search-box">
+            <input
+              type="text"
+              className="search-input"
+              placeholder={`Search ${activeTab}... (Press Esc to clear)`}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+            {searchTerm && (
+              <button className="clear-search-btn" onClick={clearSearch}>
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Search Results Count */}
+        {searchTerm && (
+          <div className="search-results-count">
+            {(() => {
+              const { items } = getCurrentItems();
+              return `${items.length} ${activeTab} found matching "${searchTerm}"`;
+            })()}
+          </div>
+        )}
+
+        <div className="tab-content">
+          {activeTab === "roles" && (
+            <div className="assignment-section">
+              <div className="section-header">
+                <h4>Available Roles</h4>
+                <div className="bulk-actions">
+                  <button
+                    className="btn-bulk-action"
+                    onClick={() => handleAssignAll("roleIds")}
+                    disabled={loading}
+                  >
+                    Assign All
+                  </button>
+                  <button
+                    className="btn-bulk-action remove"
+                    onClick={() => handleRemoveAll("roleIds")}
+                    disabled={loading}
+                  >
+                    Remove All
+                  </button>
+                </div>
+              </div>
+              <div className="assignment-grid">
+                {loading ? (
+                  <div className="loading">Loading roles...</div>
+                ) : (
+                  (() => {
+                    const { items, assignedIds, type } = getCurrentItems();
+                    return items.length > 0 ? (
+                      renderItems(items, type, assignedIds)
+                    ) : (
+                      <div className="no-results">
+                        {searchTerm ? `No roles found matching "${searchTerm}"` : "No roles available"}
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "permissions" && (
+            <div className="assignment-section">
+              <div className="section-header">
+                <h4>Available Permissions</h4>
+                <div className="bulk-actions">
+                  <button
+                    className="btn-bulk-action"
+                    onClick={() => handleAssignAll("permissionIds")}
+                    disabled={loading}
+                  >
+                    Assign All
+                  </button>
+                  <button
+                    className="btn-bulk-action remove"
+                    onClick={() => handleRemoveAll("permissionIds")}
+                    disabled={loading}
+                  >
+                    Remove All
+                  </button>
+                </div>
+              </div>
+              <div className="assignment-grid">
+                {loading ? (
+                  <div className="loading">Loading permissions...</div>
+                ) : (
+                  (() => {
+                    const { items, assignedIds, type } = getCurrentItems();
+                    return items.length > 0 ? (
+                      renderItems(items, type, assignedIds)
+                    ) : (
+                      <div className="no-results">
+                        {searchTerm ? `No permissions found matching "${searchTerm}"` : "No permissions available"}
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "modules" && (
+            <div className="assignment-section">
+              <div className="section-header">
+                <h4>Available Modules</h4>
+                <div className="bulk-actions">
+                  <button
+                    className="btn-bulk-action"
+                    onClick={() => handleAssignAll("moduleIds")}
+                    disabled={loading}
+                  >
+                    Assign All
+                  </button>
+                  <button
+                    className="btn-bulk-action remove"
+                    onClick={() => handleRemoveAll("moduleIds")}
+                    disabled={loading}
+                  >
+                    Remove All
+                  </button>
+                </div>
+              </div>
+              <div className="assignment-grid">
+                {loading ? (
+                  <div className="loading">Loading modules...</div>
+                ) : (
+                  (() => {
+                    const { items, assignedIds, type } = getCurrentItems();
+                    return items.length > 0 ? (
+                      renderItems(items, type, assignedIds)
+                    ) : (
+                      <div className="no-results">
+                        {searchTerm ? `No modules found matching "${searchTerm}"` : "No modules available"}
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn-cancel" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button
+            className={`btn-save ${loading ? "btn-loading" : ""}`}
+            onClick={handleSave}
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

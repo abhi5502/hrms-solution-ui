@@ -47,6 +47,7 @@ export const Sidebar = () => {
               </Link>
             </li>
 
+           
             <li>
               <Link
                 to="/roles"
@@ -71,6 +72,24 @@ export const Sidebar = () => {
                 className={location.pathname === "/modules" ? "active" : ""}
               >
                 📦 Modules
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/countries"
+                className={location.pathname === "/countries" ? "active" : ""}
+              >
+                🌍 Countries
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/states"
+                className={location.pathname === "/states" ? "active" : ""}
+              >
+                🗺️ States
               </Link>
             </li>
 

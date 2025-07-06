@@ -1,30 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
-  UserFormModal,
-  UserViewModal,
+  StateFormModal,
   DeleteConfirmModal,
-  CommonAssignModal,
-} from "./UserModals";
-import "./User.css";
+  ViewStateModal,
+} from "./StateModals";
+import "./state.css";
 
 // Skeleton Loading Component
-const UsersSkeleton = () => (
-  <div className="user-container">
+const StatesSkeleton = () => (
+  <div className="state-container">
     <div className="page-header">
       <div className="skeleton-title"></div>
       <div className="skeleton-button"></div>
     </div>
 
-    <div className="users-list">
-      <div className="user-list-header">
-        <h5>User-List</h5>
+    <div className="states-list">
+      <div className="state-list-header">
+        <h5>State-List</h5>
         <div className="search-container">
           <div className="search-box">
             <input
               type="text"
               className="search-input"
-              placeholder="Search by name, email..."
+              placeholder="Search by state name..."
               disabled
             />
           </div>
@@ -35,18 +34,16 @@ const UsersSkeleton = () => (
         <div className="skeleton-table">
           <div className="skeleton-table-header">
             <div>S.No</div>
-            <div>Name</div>
-            <div>Email</div>
-            <div>Roles</div>
+            <div>Country Name</div>
+            <div>State Name</div>
             <div>Status</div>
             <div>Actions</div>
           </div>
           {Array.from({ length: 6 }, (_, index) => (
             <div key={`skeleton-${index}`} className="skeleton-row">
               <div className="skeleton-cell serial"></div>
+              <div className="skeleton-cell country"></div>
               <div className="skeleton-cell name"></div>
-              <div className="skeleton-cell email"></div>
-              <div className="skeleton-cell roles"></div>
               <div className="skeleton-cell status"></div>
               <div className="skeleton-cell actions"></div>
             </div>
@@ -57,8 +54,9 @@ const UsersSkeleton = () => (
   </div>
 );
 
-export const User = () => {
-  const [users, setUsers] = useState([]);
+export const State = () => {
+  const [states, setStates] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -69,41 +67,88 @@ export const User = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // Sorting states
-  const [sortField, setSortField] = useState("fullName");
+  const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
 
   // Search state
   const [searchTerm, setSearchTerm] = useState("");
 
   // Modal states
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isStateFormOpen, setIsStateFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [editingUser, setEditingUser] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedState, setSelectedState] = useState(null);
+  const [editingState, setEditingState] = useState(null);
 
   useEffect(() => {
-    fetchUsers();
+    fetchInitialData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchUsers = async () => {
+  const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://localhost:7777/gateway/Users/get-all-user");
+      await Promise.all([fetchStates(), fetchCountries()]);
+    } catch (err) {
+      console.error("Error fetching initial data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStates = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:7777/gateway/State/states-all"
+      );
       const result = await response.json();
+      console.log("States API Response:", result); // Debug log
 
       if (result.success) {
-        setUsers(result.data);
-        setTotalPages(Math.ceil(result.data.length / itemsPerPage));
+        // Map API response fields to component expected fields
+        const mappedStates = result.data.map(state => ({
+          id: state.id,
+          name: state.stateName,
+          countryName: state.countryName,
+          status: state.status === 'True' ? 'Active' : 'Inactive',
+          createdAt: state.createdDate,
+          updatedAt: state.modifiedDate
+        }));
+        
+        console.log("Mapped States:", mappedStates); // Debug log
+        setStates(mappedStates);
+        setTotalPages(Math.ceil(mappedStates.length / itemsPerPage));
       } else {
-        setError("Failed to fetch users");
+        setError("Failed to fetch states");
       }
     } catch (err) {
       setError("Error connecting to server");
-      console.error("Error fetching users:", err);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching states:", err);
+    }
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:7777/gateway/Country/countries-all"
+      );
+      const result = await response.json();
+      console.log("Countries API Response:", result); // Debug log
+
+      if (result.success) {
+        // Map API response fields to component expected fields
+        const mappedCountries = result.data.map(country => ({
+          id: country.id,
+          name: country.countryName,
+          status: country.status === 'True' ? 'Active' : 'Inactive'
+        }));
+        
+        console.log("Mapped Countries:", mappedCountries); // Debug log
+        setCountries(mappedCountries);
+      } else {
+        console.error("Failed to fetch countries");
+      }
+    } catch (err) {
+      console.error("Error fetching countries:", err);
     }
   };
 
@@ -118,22 +163,21 @@ export const User = () => {
     setCurrentPage(1); // Reset to first page when sorting
   };
 
-  // Get filtered users based on search
-  const getFilteredUsers = () => {
+  // Get filtered states based on search
+  const getFilteredStates = () => {
     if (!searchTerm.trim()) {
-      return users;
+      return states;
     }
 
-    return users.filter((user) =>
-      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.roles?.some(role => role.toLowerCase().includes(searchTerm.toLowerCase()))
+    return states.filter((state) =>
+      state.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      state.countryName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  // Get sorted users
-  const getSortedUsers = () => {
-    return [...getFilteredUsers()].sort((a, b) => {
+  // Get sorted states
+  const getSortedStates = () => {
+    return [...getFilteredStates()].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
@@ -153,12 +197,12 @@ export const User = () => {
     });
   };
 
-  // Get paginated users
-  const getPaginatedUsers = () => {
-    const sortedUsers = getSortedUsers();
+  // Get paginated states
+  const getPaginatedStates = () => {
+    const sortedStates = getSortedStates();
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return sortedUsers.slice(startIndex, endIndex);
+    return sortedStates.slice(startIndex, endIndex);
   };
 
   // Pagination handlers
@@ -174,12 +218,12 @@ export const User = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  // Update total pages when users or search term change
+  // Update total pages when states or search term change
   React.useEffect(() => {
-    const filteredUsers = getFilteredUsers();
-    setTotalPages(Math.ceil(filteredUsers.length / itemsPerPage));
+    const filteredStates = getFilteredStates();
+    setTotalPages(Math.ceil(filteredStates.length / itemsPerPage));
     setCurrentPage(1); // Reset to first page when search changes
-  }, [users, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [states, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Search handler
   const handleSearch = (e) => {
@@ -209,122 +253,127 @@ export const User = () => {
   };
 
   // Modal handlers
-  const handleAddUser = () => {
+  const handleAddState = () => {
     setError(null); // Clear any previous errors
-    setEditingUser(null);
-    setIsUserFormOpen(true);
+    setEditingState(null);
+    setIsStateFormOpen(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditState = (state) => {
     setError(null); // Clear any previous errors
-    setEditingUser(user);
-    setIsUserFormOpen(true);
+    setEditingState(state);
+    setIsStateFormOpen(true);
   };
 
-  const handleDeleteUser = (user) => {
-    setSelectedUser(user);
+  const handleDeleteState = (state) => {
+    setSelectedState(state);
     setIsDeleteModalOpen(true);
   };
 
-  const handleViewUser = (user) => {
-    setSelectedUser(user);
+  const handleViewState = (state) => {
+    setSelectedState(state);
     setIsViewModalOpen(true);
   };
 
-  const handleAssignUser = (user) => {
-    setSelectedUser(user);
-    setIsAssignModalOpen(true);
-  };
-
-  const handleSaveAssignment = async (userId, assignmentData) => {
-    try {
-      setOperationLoading(true);
-      
-      // API call for user assignment
-      const response = await fetch(`https://localhost:7777/gateway/Users/user-assign/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(assignmentData),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        await fetchUsers();
-        toast.success("Assignment updated successfully!");
-      } else {
-        toast.error(result.message || "Failed to update assignment");
-      }
-    } catch (err) {
-      toast.error("Error updating assignment. Please try again.");
-      console.error("Error updating assignment:", err);
-    } finally {
-      setOperationLoading(false);
-    }
-  };
-
   // API handlers
-  const handleSaveUser = async (userData) => {
+  // Helper: Check for duplicate state name
+  const isDuplicateState = (name, countryName, excludeId = null) => {
+    return states.some(
+      (state) =>
+        (excludeId ? state.id !== excludeId : true) &&
+        state.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+        state.countryName.toLowerCase().trim() === countryName.toLowerCase().trim()
+    );
+  };
+
+  const handleSaveState = async (stateData) => {
     try {
       setOperationLoading(true);
-      
-      if (editingUser) {
-        // Update existing user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-update", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: editingUser.id,
-            ...userData,
-          }),
-        });
+
+      // Find the selected country to get its name
+      const selectedCountry = countries.find(c => c.id === stateData.countryId);
+      if (!selectedCountry) {
+        toast.error("Please select a valid country");
+        setOperationLoading(false);
+        return;
+      }
+
+      // Check for duplicate state name in the same country
+      if (isDuplicateState(stateData.name, selectedCountry.name, editingState?.id)) {
+        toast.error("State name already exists in this country");
+        setOperationLoading(false);
+        return;
+      }
+
+      if (editingState) {
+        // Update existing state
+        const response = await fetch(
+          "https://localhost:7777/gateway/State/state-update",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: editingState.id,
+              stateName: stateData.name,
+              countryId: stateData.countryId,
+              status: stateData.status === "active",
+            }),
+          }
+        );
 
         const result = await response.json();
         if (result.success) {
-          await fetchUsers();
-          toast.success("User updated successfully!");
-          setIsUserFormOpen(false);
-          setEditingUser(null);
+          console.log("State updated successfully:", result.data);
+          await fetchStates();
+          toast.success("State updated successfully!");
+          setIsStateFormOpen(false);
+          setEditingState(null);
         } else {
-          toast.error(result.message || "Failed to update user");
+          toast.error(result.message || "Failed to update state");
         }
       } else {
-        // Create new user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        });
+        // Create new state
+        const response = await fetch(
+          "https://localhost:7777/gateway/State/state-create",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              stateName: stateData.name,
+              countryId: stateData.countryId,
+              status: stateData.status === 'active' ? 'True' : 'False'
+            }),
+          }
+        );
 
         const result = await response.json();
         if (result.success) {
-          await fetchUsers();
-          toast.success("User created successfully!");
-          setIsUserFormOpen(false);
-          setEditingUser(null);
+          console.log("State created successfully:", result.data);
+          await fetchStates();
+          toast.success("State created successfully!");
+          setIsStateFormOpen(false);
         } else {
-          toast.error(result.message || "Failed to create user");
+          toast.error(result.message || "Failed to create state");
         }
       }
     } catch (err) {
-      toast.error("Error saving user. Please try again.");
-      console.error("Error saving user:", err);
+      console.error("Error in handleSaveState:", err);
+      toast.error("Error saving state. Please try again.");
     } finally {
       setOperationLoading(false);
     }
   };
 
-  const handleConfirmDelete = async (userId) => {
+  const handleConfirmDelete = async (stateId) => {
     try {
       setOperationLoading(true);
 
       const response = await fetch(
-        `https://localhost:7777/gateway/Users/user-delete/${userId}`,
+        `https://localhost:7777/gateway/State/state-delete/${stateId}`,
         {
           method: "DELETE",
         }
@@ -332,53 +381,53 @@ export const User = () => {
 
       const result = await response.json();
       if (result.success) {
-        await fetchUsers();
-        toast.success("User deleted successfully!");
+        await fetchStates();
+        toast.success("State deleted successfully!");
       } else {
-        toast.error("Failed to delete user");
+        toast.error("Failed to delete state");
       }
 
       setIsDeleteModalOpen(false);
-      setSelectedUser(null);
+      setSelectedState(null);
     } catch (err) {
-      toast.error("Error deleting user");
-      console.error("Error deleting user:", err);
+      toast.error("Error deleting state");
+      console.error("Error deleting state:", err);
     } finally {
       setOperationLoading(false);
     }
   };
 
   if (loading) {
-    return <UsersSkeleton />;
+    return <StatesSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="user-container">
-        <h1>Users</h1>
+      <div className="state-container">
+        <h1>States</h1>
         <div className="error">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="user-container">
+    <div className="state-container">
       <div className="page-header">
-        <h1>Users</h1>
-        <button className="btn-add" onClick={handleAddUser}>
-          + Add User
+        <h1>States</h1>
+        <button className="btn-add" onClick={handleAddState}>
+          + Add State
         </button>
       </div>
 
-      <div className="users-list">
-        <div className="user-list-header">
-          <h5>User-List</h5>
+      <div className="states-list">
+        <div className="state-list-header">
+          <h5>State-List</h5>
           <div className="search-container">
             <div className="search-box">
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search by name, email..."
+                placeholder="Search by state or country name..."
                 value={searchTerm}
                 onChange={handleSearch}
               />
@@ -393,7 +442,7 @@ export const User = () => {
 
         {searchTerm && (
           <div className="search-results-info">
-            {getFilteredUsers().length} user(s) found
+            {getFilteredStates().length} state(s) found
           </div>
         )}
 
@@ -402,30 +451,28 @@ export const User = () => {
             operationLoading ? "table-loading-overlay" : ""
           }`}
         >
-          <table className="users-table">
+          <table className="states-table">
             <thead>
               <tr>
                 <th>S.No</th>
                 <th
-                  className={getSortClass("fullName")}
-                  onClick={() => handleSort("fullName")}
+                  className={getSortClass("countryName")}
+                  onClick={() => handleSort("countryName")}
                 >
-                  Name{" "}
+                  Country Name{" "}
                   <span className="sort-indicator">
-                    {getSortIndicator("fullName")}
+                    {getSortIndicator("countryName")}
                   </span>
                 </th>
                 <th
-                  className={getSortClass("email")}
-                  onClick={() => handleSort("email")}
+                  className={getSortClass("name")}
+                  onClick={() => handleSort("name")}
                 >
-                  Email{" "}
+                  State Name{" "}
                   <span className="sort-indicator">
-                    {getSortIndicator("email")}
+                    {getSortIndicator("name")}
                   </span>
                 </th>
-                <th>Roles</th>
-                <th>Country</th>
                 <th
                   className={getSortClass("status")}
                   onClick={() => handleSort("status")}
@@ -439,68 +486,39 @@ export const User = () => {
               </tr>
             </thead>
             <tbody>
-              {getPaginatedUsers().map((user, index) => (
-                <tr key={user.id}>
+              {getPaginatedStates().map((state, index) => (
+                <tr key={state.id}>
                   <td className="serial-no">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </td>
-                  <td className="user-name">{user.fullName}</td>
-                  <td className="user-email">
-                    <a href={`mailto:${user.email}`}>{user.email}</a>
-                  </td>
-                  <td className="user-roles">
-                    {user.roles?.length > 0 ? (
-                      <div className="roles-display">
-                        {user.roles.slice(0, 2).map((role, idx) => (
-                          <span key={`${user.id}-role-${idx}`} className="role-badge">
-                            {role}
-                          </span>
-                        ))}
-                        {user.roles.length > 2 && (
-                          <span className="role-more">
-                            +{user.roles.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="no-roles">No roles</span>
-                    )}
-                  </td>
-                  <td className="user-country">{user.country || "N/A"}</td>
+                  <td className="country-name">{state.countryName}</td>
+                  <td className="state-name">{state.name}</td>
                   <td>
-                    <span className={`status ${user.status?.toLowerCase()}`}>
-                      {user.status}
+                    <span className={`status ${state.status?.toLowerCase()}`}>
+                      {state.status}
                     </span>
                   </td>
                   <td>
                     <button
                       className="btn-view"
-                      title="View User Details"
-                      onClick={() => handleViewUser(user)}
+                      title="View State Details"
+                      onClick={() => handleViewState(state)}
                       disabled={operationLoading}
                     >
                       👁️
                     </button>
                     <button
                       className="btn-edit"
-                      title="Edit User"
-                      onClick={() => handleEditUser(user)}
+                      title="Edit State"
+                      onClick={() => handleEditState(state)}
                       disabled={operationLoading}
                     >
                       ✏️
                     </button>
                     <button
-                      className="btn-assign"
-                      title="Assign Roles/Permissions/Modules"
-                      onClick={() => handleAssignUser(user)}
-                      disabled={operationLoading}
-                    >
-                      🔧
-                    </button>
-                    <button
                       className="btn-delete"
-                      title="Delete User"
-                      onClick={() => handleDeleteUser(user)}
+                      title="Delete State"
+                      onClick={() => handleDeleteState(state)}
                       disabled={operationLoading}
                     >
                       🗑️
@@ -513,15 +531,15 @@ export const User = () => {
         </div>
 
         {/* Pagination */}
-        {getFilteredUsers().length > 0 && (
+        {getFilteredStates().length > 0 && (
           <div className="pagination-container">
             <div className="pagination-info">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(
                 currentPage * itemsPerPage,
-                getFilteredUsers().length
+                getFilteredStates().length
               )}{" "}
-              of {getFilteredUsers().length} users
+              of {getFilteredStates().length} states
               {searchTerm && " (filtered)"}
             </div>
 
@@ -565,9 +583,9 @@ export const User = () => {
           </div>
         )}
 
-        {getFilteredUsers().length === 0 && users.length > 0 && (
+        {getFilteredStates().length === 0 && states.length > 0 && (
           <div className="no-data">
-            No users found matching "{searchTerm}"
+            No states found matching "{searchTerm}"
             <br />
             <button className="btn-clear-search" onClick={clearSearch}>
               Clear search
@@ -575,20 +593,21 @@ export const User = () => {
           </div>
         )}
 
-        {users.length === 0 && (
-          <div className="no-data">No users found</div>
+        {states.length === 0 && (
+          <div className="no-data">No states found</div>
         )}
       </div>
 
-      {/* User Form Modal */}
-      <UserFormModal
-        isOpen={isUserFormOpen}
+      {/* State Form Modal */}
+      <StateFormModal
+        isOpen={isStateFormOpen}
         onClose={() => {
-          setIsUserFormOpen(false);
-          setEditingUser(null);
+          setIsStateFormOpen(false);
+          setEditingState(null);
         }}
-        user={editingUser}
-        onSave={handleSaveUser}
+        state={editingState}
+        countries={countries}
+        onSave={handleSaveState}
       />
 
       {/* Delete Confirmation Modal */}
@@ -596,31 +615,20 @@ export const User = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
-          setSelectedUser(null);
+          setSelectedState(null);
         }}
-        user={selectedUser}
+        state={selectedState}
         onConfirm={handleConfirmDelete}
       />
 
-      {/* View User Details Modal */}
-      <UserViewModal
+      {/* View State Details Modal */}
+      <ViewStateModal
         isOpen={isViewModalOpen}
         onClose={() => {
           setIsViewModalOpen(false);
-          setSelectedUser(null);
+          setSelectedState(null);
         }}
-        user={selectedUser}
-      />
-
-      {/* User Assignment Modal */}
-      <CommonAssignModal
-        isOpen={isAssignModalOpen}
-        onClose={() => {
-          setIsAssignModalOpen(false);
-          setSelectedUser(null);
-        }}
-        user={selectedUser}
-        onSave={handleSaveAssignment}
+        state={selectedState}
       />
     </div>
   );

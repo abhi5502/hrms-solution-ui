@@ -12,6 +12,8 @@ import { User } from "./components/User/user";
 import { Role } from "./components/Role/role";
 import { Permission } from "./components/Permission/permission";
 import { Module } from "./components/Module/module";
+import { Country } from "./components/Country/country";
+import { State } from "./components/State/state";
 import ApiTest from "./components/ApiTest";
 
 function App() {
@@ -39,6 +41,8 @@ function App() {
                 <Route path="/roles" element={<Role />} />
                 <Route path="/permissions" element={<Permission />} />
                 <Route path="/modules" element={<Module />} />
+                <Route path="/countries" element={<Country />} />
+                <Route path="/states" element={<State />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/api-test" element={<ApiTest />} />

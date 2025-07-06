@@ -4,6 +4,8 @@ import { Dashboard } from "../Dashboard/Dashboard";
 import { Employee } from "../Employee/employee";
 import { User } from "../User/user";
 import { Role } from "../Role/role";
+import { Country } from "../Country/country";
+import { State } from "../State/state";
 
 export const RouteHandler = () => {
   const location = useLocation();
@@ -29,6 +31,14 @@ export const RouteHandler = () => {
     {
       path: "/roles",
       element: <Role />,
+    },
+    {
+      path: "/countries",
+      element: <Country />,
+    },
+    {
+      path: "/states",
+      element: <State />,
     },
     {
       path: "/departments",

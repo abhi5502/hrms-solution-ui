@@ -1,30 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
-  UserFormModal,
-  UserViewModal,
+  CountryFormModal,
   DeleteConfirmModal,
-  CommonAssignModal,
-} from "./UserModals";
-import "./User.css";
+  ViewCountryModal,
+} from "./CountryModals";
+import "./country.css";
 
 // Skeleton Loading Component
-const UsersSkeleton = () => (
-  <div className="user-container">
+const CountriesSkeleton = () => (
+  <div className="country-container">
     <div className="page-header">
       <div className="skeleton-title"></div>
       <div className="skeleton-button"></div>
     </div>
 
-    <div className="users-list">
-      <div className="user-list-header">
-        <h5>User-List</h5>
+    <div className="countries-list">
+      <div className="country-list-header">
+        <h5>Country-List</h5>
         <div className="search-container">
           <div className="search-box">
             <input
               type="text"
               className="search-input"
-              placeholder="Search by name, email..."
+              placeholder="Search by country name..."
               disabled
             />
           </div>
@@ -35,9 +34,7 @@ const UsersSkeleton = () => (
         <div className="skeleton-table">
           <div className="skeleton-table-header">
             <div>S.No</div>
-            <div>Name</div>
-            <div>Email</div>
-            <div>Roles</div>
+            <div>Country Name</div>
             <div>Status</div>
             <div>Actions</div>
           </div>
@@ -45,8 +42,6 @@ const UsersSkeleton = () => (
             <div key={`skeleton-${index}`} className="skeleton-row">
               <div className="skeleton-cell serial"></div>
               <div className="skeleton-cell name"></div>
-              <div className="skeleton-cell email"></div>
-              <div className="skeleton-cell roles"></div>
               <div className="skeleton-cell status"></div>
               <div className="skeleton-cell actions"></div>
             </div>
@@ -57,8 +52,8 @@ const UsersSkeleton = () => (
   </div>
 );
 
-export const User = () => {
-  const [users, setUsers] = useState([]);
+export const Country = () => {
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -69,39 +64,51 @@ export const User = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // Sorting states
-  const [sortField, setSortField] = useState("fullName");
+  const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
 
   // Search state
   const [searchTerm, setSearchTerm] = useState("");
 
   // Modal states
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isCountryFormOpen, setIsCountryFormOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [editingUser, setEditingUser] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [editingCountry, setEditingCountry] = useState(null);
 
   useEffect(() => {
-    fetchUsers();
+    fetchCountries();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchUsers = async () => {
+  const fetchCountries = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://localhost:7777/gateway/Users/get-all-user");
+      const response = await fetch(
+        "https://localhost:7777/gateway/Country/countries-all"
+      );
       const result = await response.json();
+      console.log("API Response:", result); // Debug log
 
       if (result.success) {
-        setUsers(result.data);
-        setTotalPages(Math.ceil(result.data.length / itemsPerPage));
+        // Map API response fields to component expected fields
+        const mappedCountries = result.data.map(country => ({
+          id: country.id,
+          name: country.countryName,
+          status: country.status === 'True' ? 'Active' : 'Inactive',
+          createdAt: country.createdDate,
+          updatedAt: country.modifiedDate
+        }));
+        
+        console.log("Mapped Countries:", mappedCountries); // Debug log
+        setCountries(mappedCountries);
+        setTotalPages(Math.ceil(mappedCountries.length / itemsPerPage));
       } else {
-        setError("Failed to fetch users");
+        setError("Failed to fetch countries");
       }
     } catch (err) {
       setError("Error connecting to server");
-      console.error("Error fetching users:", err);
+      console.error("Error fetching countries:", err);
     } finally {
       setLoading(false);
     }
@@ -118,22 +125,20 @@ export const User = () => {
     setCurrentPage(1); // Reset to first page when sorting
   };
 
-  // Get filtered users based on search
-  const getFilteredUsers = () => {
+  // Get filtered countries based on search
+  const getFilteredCountries = () => {
     if (!searchTerm.trim()) {
-      return users;
+      return countries;
     }
 
-    return users.filter((user) =>
-      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.roles?.some(role => role.toLowerCase().includes(searchTerm.toLowerCase()))
+    return countries.filter((country) =>
+      country.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
-  // Get sorted users
-  const getSortedUsers = () => {
-    return [...getFilteredUsers()].sort((a, b) => {
+  // Get sorted countries
+  const getSortedCountries = () => {
+    return [...getFilteredCountries()].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
@@ -153,12 +158,12 @@ export const User = () => {
     });
   };
 
-  // Get paginated users
-  const getPaginatedUsers = () => {
-    const sortedUsers = getSortedUsers();
+  // Get paginated countries
+  const getPaginatedCountries = () => {
+    const sortedCountries = getSortedCountries();
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return sortedUsers.slice(startIndex, endIndex);
+    return sortedCountries.slice(startIndex, endIndex);
   };
 
   // Pagination handlers
@@ -174,12 +179,12 @@ export const User = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  // Update total pages when users or search term change
+  // Update total pages when countries or search term change
   React.useEffect(() => {
-    const filteredUsers = getFilteredUsers();
-    setTotalPages(Math.ceil(filteredUsers.length / itemsPerPage));
+    const filteredCountries = getFilteredCountries();
+    setTotalPages(Math.ceil(filteredCountries.length / itemsPerPage));
     setCurrentPage(1); // Reset to first page when search changes
-  }, [users, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [countries, itemsPerPage, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Search handler
   const handleSearch = (e) => {
@@ -209,122 +214,157 @@ export const User = () => {
   };
 
   // Modal handlers
-  const handleAddUser = () => {
+  const handleAddCountry = () => {
     setError(null); // Clear any previous errors
-    setEditingUser(null);
-    setIsUserFormOpen(true);
+    setEditingCountry(null);
+    setIsCountryFormOpen(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditCountry = (country) => {
     setError(null); // Clear any previous errors
-    setEditingUser(user);
-    setIsUserFormOpen(true);
+    setEditingCountry(country);
+    setIsCountryFormOpen(true);
   };
 
-  const handleDeleteUser = (user) => {
-    setSelectedUser(user);
+  const handleDeleteCountry = (country) => {
+    setSelectedCountry(country);
     setIsDeleteModalOpen(true);
   };
 
-  const handleViewUser = (user) => {
-    setSelectedUser(user);
+  const handleViewCountry = (country) => {
+    setSelectedCountry(country);
     setIsViewModalOpen(true);
   };
 
-  const handleAssignUser = (user) => {
-    setSelectedUser(user);
-    setIsAssignModalOpen(true);
-  };
-
-  const handleSaveAssignment = async (userId, assignmentData) => {
-    try {
-      setOperationLoading(true);
-      
-      // API call for user assignment
-      const response = await fetch(`https://localhost:7777/gateway/Users/user-assign/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(assignmentData),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        await fetchUsers();
-        toast.success("Assignment updated successfully!");
-      } else {
-        toast.error(result.message || "Failed to update assignment");
-      }
-    } catch (err) {
-      toast.error("Error updating assignment. Please try again.");
-      console.error("Error updating assignment:", err);
-    } finally {
-      setOperationLoading(false);
-    }
-  };
-
   // API handlers
-  const handleSaveUser = async (userData) => {
+  // Helper: Check for duplicate country name
+  const isDuplicateCountry = (name, excludeId = null) => {
+    return countries.some(
+      (country) =>
+        (excludeId ? country.id !== excludeId : true) &&
+        country.name.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+  };
+
+  // Helper: Handle API response for create/update
+  const handleCountryApiResponse = async (
+    response,
+    countryData,
+    successMsg,
+    fetchCountriesCallback
+  ) => {
+    console.log("API Response status:", response.status);
+    console.log("API Response ok:", response.ok);
+    console.log("API Response headers:", [...response.headers.entries()]);
+    
+    if (!response.ok) {
+      let errorText;
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        console.error("Error reading error response:", e);
+        errorText = "Could not read error response";
+      }
+      console.error("HTTP Error:", response.status, response.statusText, errorText);
+      toast.error(`HTTP Error: ${response.status} - ${response.statusText}`);
+      return;
+    }
+    
+    const result = await response.json();
+    console.log("API Response result:", result);
+    
+    if (result.success && (!result.statusCode || result.statusCode === 200)) {
+      await fetchCountriesCallback();
+      toast.success(successMsg);
+      setIsCountryFormOpen(false);
+      setEditingCountry(null);
+    } else {
+      const errorMessage = result.message || `Failed to save country`;
+      console.error("API Error:", errorMessage);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleSaveCountry = async (countryData) => {
     try {
       setOperationLoading(true);
-      
-      if (editingUser) {
-        // Update existing user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-update", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: editingUser.id,
-            ...userData,
-          }),
-        });
+
+      // Check for duplicate country name
+      if (isDuplicateCountry(countryData.name, editingCountry?.id)) {
+        toast.error("Country name already exists");
+        setOperationLoading(false);
+        return;
+      }
+
+      // Map form data to API expected format
+      const apiData = {
+        countryName: countryData.name,
+        status: countryData.status === 'active' ? 'True' : 'False'
+      };
+
+      if (editingCountry) {
+        // Update existing country - copied from Role component
+        const response = await fetch(
+          "https://localhost:7777/gateway/Country/country-update",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: editingCountry.id,
+              countryName: countryData.name,
+              status: countryData.status === "active", // boolean like Role
+            }),
+          }
+        );
 
         const result = await response.json();
         if (result.success) {
-          await fetchUsers();
-          toast.success("User updated successfully!");
-          setIsUserFormOpen(false);
-          setEditingUser(null);
+          console.log("Country updated successfully:", result.data);
+          // Refresh the countries list
+          await fetchCountries();
+          toast.success("Country updated successfully!");
+          setIsCountryFormOpen(false);
+          setEditingCountry(null);
         } else {
-          toast.error(result.message || "Failed to update user");
+          toast.error(result.message || "Failed to update country");
         }
       } else {
-        // Create new user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        });
+        // Create new country
+        const response = await fetch(
+          "https://localhost:7777/gateway/Country/country-create",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(apiData),
+          }
+        );
 
-        const result = await response.json();
-        if (result.success) {
-          await fetchUsers();
-          toast.success("User created successfully!");
-          setIsUserFormOpen(false);
-          setEditingUser(null);
-        } else {
-          toast.error(result.message || "Failed to create user");
-        }
+        await handleCountryApiResponse(
+          response,
+          countryData,
+          "Country created successfully!",
+          fetchCountries
+        );
       }
     } catch (err) {
-      toast.error("Error saving user. Please try again.");
-      console.error("Error saving user:", err);
+      console.error("Error in handleSaveCountry:", err);
+      toast.error("Error saving country. Please try again.");
+      console.error("Error saving country:", err);
     } finally {
       setOperationLoading(false);
     }
   };
 
-  const handleConfirmDelete = async (userId) => {
+  const handleConfirmDelete = async (countryId) => {
     try {
       setOperationLoading(true);
 
       const response = await fetch(
-        `https://localhost:7777/gateway/Users/user-delete/${userId}`,
+        `https://localhost:7777/gateway/Country/country-delete/${countryId}`,
         {
           method: "DELETE",
         }
@@ -332,53 +372,53 @@ export const User = () => {
 
       const result = await response.json();
       if (result.success) {
-        await fetchUsers();
-        toast.success("User deleted successfully!");
+        await fetchCountries();
+        toast.success("Country deleted successfully!");
       } else {
-        toast.error("Failed to delete user");
+        toast.error("Failed to delete country");
       }
 
       setIsDeleteModalOpen(false);
-      setSelectedUser(null);
+      setSelectedCountry(null);
     } catch (err) {
-      toast.error("Error deleting user");
-      console.error("Error deleting user:", err);
+      toast.error("Error deleting country");
+      console.error("Error deleting country:", err);
     } finally {
       setOperationLoading(false);
     }
   };
 
   if (loading) {
-    return <UsersSkeleton />;
+    return <CountriesSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="user-container">
-        <h1>Users</h1>
+      <div className="country-container">
+        <h1>Countries</h1>
         <div className="error">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="user-container">
+    <div className="country-container">
       <div className="page-header">
-        <h1>Users</h1>
-        <button className="btn-add" onClick={handleAddUser}>
-          + Add User
+        <h1>Countries</h1>
+        <button className="btn-add" onClick={handleAddCountry}>
+          + Add Country
         </button>
       </div>
 
-      <div className="users-list">
-        <div className="user-list-header">
-          <h5>User-List</h5>
+      <div className="countries-list">
+        <div className="country-list-header">
+          <h5>Country-List</h5>
           <div className="search-container">
             <div className="search-box">
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search by name, email..."
+                placeholder="Search by country name..."
                 value={searchTerm}
                 onChange={handleSearch}
               />
@@ -393,7 +433,7 @@ export const User = () => {
 
         {searchTerm && (
           <div className="search-results-info">
-            {getFilteredUsers().length} user(s) found
+            {getFilteredCountries().length} country(s) found
           </div>
         )}
 
@@ -402,30 +442,19 @@ export const User = () => {
             operationLoading ? "table-loading-overlay" : ""
           }`}
         >
-          <table className="users-table">
+          <table className="countries-table">
             <thead>
               <tr>
                 <th>S.No</th>
                 <th
-                  className={getSortClass("fullName")}
-                  onClick={() => handleSort("fullName")}
+                  className={getSortClass("name")}
+                  onClick={() => handleSort("name")}
                 >
-                  Name{" "}
+                  Country Name{" "}
                   <span className="sort-indicator">
-                    {getSortIndicator("fullName")}
+                    {getSortIndicator("name")}
                   </span>
                 </th>
-                <th
-                  className={getSortClass("email")}
-                  onClick={() => handleSort("email")}
-                >
-                  Email{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("email")}
-                  </span>
-                </th>
-                <th>Roles</th>
-                <th>Country</th>
                 <th
                   className={getSortClass("status")}
                   onClick={() => handleSort("status")}
@@ -439,68 +468,38 @@ export const User = () => {
               </tr>
             </thead>
             <tbody>
-              {getPaginatedUsers().map((user, index) => (
-                <tr key={user.id}>
+              {getPaginatedCountries().map((country, index) => (
+                <tr key={country.id}>
                   <td className="serial-no">
                     {(currentPage - 1) * itemsPerPage + index + 1}
                   </td>
-                  <td className="user-name">{user.fullName}</td>
-                  <td className="user-email">
-                    <a href={`mailto:${user.email}`}>{user.email}</a>
-                  </td>
-                  <td className="user-roles">
-                    {user.roles?.length > 0 ? (
-                      <div className="roles-display">
-                        {user.roles.slice(0, 2).map((role, idx) => (
-                          <span key={`${user.id}-role-${idx}`} className="role-badge">
-                            {role}
-                          </span>
-                        ))}
-                        {user.roles.length > 2 && (
-                          <span className="role-more">
-                            +{user.roles.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="no-roles">No roles</span>
-                    )}
-                  </td>
-                  <td className="user-country">{user.country || "N/A"}</td>
+                  <td className="country-name">{country.name}</td>
                   <td>
-                    <span className={`status ${user.status?.toLowerCase()}`}>
-                      {user.status}
+                    <span className={`status ${country.status?.toLowerCase()}`}>
+                      {country.status}
                     </span>
                   </td>
                   <td>
                     <button
                       className="btn-view"
-                      title="View User Details"
-                      onClick={() => handleViewUser(user)}
+                      title="View Country Details"
+                      onClick={() => handleViewCountry(country)}
                       disabled={operationLoading}
                     >
                       👁️
                     </button>
                     <button
                       className="btn-edit"
-                      title="Edit User"
-                      onClick={() => handleEditUser(user)}
+                      title="Edit Country"
+                      onClick={() => handleEditCountry(country)}
                       disabled={operationLoading}
                     >
                       ✏️
                     </button>
                     <button
-                      className="btn-assign"
-                      title="Assign Roles/Permissions/Modules"
-                      onClick={() => handleAssignUser(user)}
-                      disabled={operationLoading}
-                    >
-                      🔧
-                    </button>
-                    <button
                       className="btn-delete"
-                      title="Delete User"
-                      onClick={() => handleDeleteUser(user)}
+                      title="Delete Country"
+                      onClick={() => handleDeleteCountry(country)}
                       disabled={operationLoading}
                     >
                       🗑️
@@ -513,15 +512,15 @@ export const User = () => {
         </div>
 
         {/* Pagination */}
-        {getFilteredUsers().length > 0 && (
+        {getFilteredCountries().length > 0 && (
           <div className="pagination-container">
             <div className="pagination-info">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(
                 currentPage * itemsPerPage,
-                getFilteredUsers().length
+                getFilteredCountries().length
               )}{" "}
-              of {getFilteredUsers().length} users
+              of {getFilteredCountries().length} countries
               {searchTerm && " (filtered)"}
             </div>
 
@@ -565,9 +564,9 @@ export const User = () => {
           </div>
         )}
 
-        {getFilteredUsers().length === 0 && users.length > 0 && (
+        {getFilteredCountries().length === 0 && countries.length > 0 && (
           <div className="no-data">
-            No users found matching "{searchTerm}"
+            No countries found matching "{searchTerm}"
             <br />
             <button className="btn-clear-search" onClick={clearSearch}>
               Clear search
@@ -575,20 +574,20 @@ export const User = () => {
           </div>
         )}
 
-        {users.length === 0 && (
-          <div className="no-data">No users found</div>
+        {countries.length === 0 && (
+          <div className="no-data">No countries found</div>
         )}
       </div>
 
-      {/* User Form Modal */}
-      <UserFormModal
-        isOpen={isUserFormOpen}
+      {/* Country Form Modal */}
+      <CountryFormModal
+        isOpen={isCountryFormOpen}
         onClose={() => {
-          setIsUserFormOpen(false);
-          setEditingUser(null);
+          setIsCountryFormOpen(false);
+          setEditingCountry(null);
         }}
-        user={editingUser}
-        onSave={handleSaveUser}
+        country={editingCountry}
+        onSave={handleSaveCountry}
       />
 
       {/* Delete Confirmation Modal */}
@@ -596,31 +595,20 @@ export const User = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setIsDeleteModalOpen(false);
-          setSelectedUser(null);
+          setSelectedCountry(null);
         }}
-        user={selectedUser}
+        country={selectedCountry}
         onConfirm={handleConfirmDelete}
       />
 
-      {/* View User Details Modal */}
-      <UserViewModal
+      {/* View Country Details Modal */}
+      <ViewCountryModal
         isOpen={isViewModalOpen}
         onClose={() => {
           setIsViewModalOpen(false);
-          setSelectedUser(null);
+          setSelectedCountry(null);
         }}
-        user={selectedUser}
-      />
-
-      {/* User Assignment Modal */}
-      <CommonAssignModal
-        isOpen={isAssignModalOpen}
-        onClose={() => {
-          setIsAssignModalOpen(false);
-          setSelectedUser(null);
-        }}
-        user={selectedUser}
-        onSave={handleSaveAssignment}
+        country={selectedCountry}
       />
     </div>
   );

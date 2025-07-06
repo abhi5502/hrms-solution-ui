@@ -645,6 +645,7 @@
 
 .btn-view,
 .btn-edit,
+.btn-assign,
 .btn-delete {
   background: none !important;
   border: none !important;
@@ -670,6 +671,11 @@
 }
 
 .btn-edit {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.btn-assign {
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -711,6 +717,7 @@
   
   .btn-view,
   .btn-edit,
+  .btn-assign,
   .btn-delete {
     font-size: 11px;
     min-width: 18px;
@@ -720,6 +727,7 @@
 
 .btn-view:hover,
 .btn-edit:hover,
+.btn-assign:hover,
 .btn-delete:hover {
   background: none;
   transform: none;
@@ -728,6 +736,7 @@
 
 .btn-view:disabled,
 .btn-edit:disabled,
+.btn-assign:disabled,
 .btn-delete:disabled {
   opacity: 0.3;
   cursor: not-allowed;
