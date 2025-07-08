@@ -2,24 +2,35 @@
    PROFESSIONAL COUNTRY MODALS CSS
    ================================= */
 
-/* Modal Base Styles */
+/* Modal Base Styles - Simple & Working */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  /* Cross-browser backdrop blur */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  /* Fallback for unsupported browsers */
-
   animation: fadeIn 0.3s ease-out;
+  
+  /* Beautiful gradient background */
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(20, 25, 40, 0.9) 50%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  
+  /* Add subtle texture */
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(66, 153, 225, 0.1) 0%, transparent 60%),
+    radial-gradient(circle at 80% 70%, rgba(159, 122, 234, 0.08) 0%, transparent 60%);
+}
+
+.modal-overlay::before {
+  display: none;
 }
 
 @keyframes fadeIn {
@@ -87,9 +98,10 @@
 }
 
 .modal-close:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: #e53e3e !important;
+  color: white !important;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4) !important;
 }
 
 /* Modal Body */

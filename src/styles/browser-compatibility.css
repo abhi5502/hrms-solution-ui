@@ -1,27 +1,22 @@
 /* =================================
-   BROWSER COMPATIBILITY LAYER
+   BROWSER COMPATIBILITY LAYER - DISABLED FOR MODAL BLUR
    ================================= */
 
-/* Cross-browser backdrop-filter support */
+/* COMPLETELY DISABLE backdrop-filter here to avoid conflicts */
 @supports (backdrop-filter: blur(1px)) {
-  .modal-overlay {
-    backdrop-filter: blur(8px);
-  }
+  /* .modal-overlay styles are now handled in individual modal CSS files */
   
   .loading-overlay {
-    backdrop-filter: blur(4px);
+    /* backdrop-filter: blur(4px); */
   }
 }
 
 @supports (-webkit-backdrop-filter: blur(1px)) {
-  .modal-overlay {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
+  /* .modal-overlay styles are now handled in individual modal CSS files */
   
   .loading-overlay {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* backdrop-filter: blur(4px); */
+    /* -webkit-backdrop-filter: blur(4px); */
   }
 }
 

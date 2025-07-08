@@ -4,7 +4,6 @@ import {
   UserFormModal,
   UserViewModal,
   DeleteConfirmModal,
-  CommonAssignModal,
 } from "./UserModals";
 import "./User.css";
 
@@ -38,6 +37,8 @@ const UsersSkeleton = () => (
             <div>Name</div>
             <div>Email</div>
             <div>Roles</div>
+            <div>Permissions</div>
+            <div>Modules</div>
             <div>Status</div>
             <div>Actions</div>
           </div>
@@ -47,6 +48,8 @@ const UsersSkeleton = () => (
               <div className="skeleton-cell name"></div>
               <div className="skeleton-cell email"></div>
               <div className="skeleton-cell roles"></div>
+              <div className="skeleton-cell permissions"></div>
+              <div className="skeleton-cell modules"></div>
               <div className="skeleton-cell status"></div>
               <div className="skeleton-cell actions"></div>
             </div>
@@ -79,7 +82,6 @@ export const User = () => {
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
 
@@ -231,78 +233,142 @@ export const User = () => {
     setIsViewModalOpen(true);
   };
 
-  const handleAssignUser = (user) => {
-    setSelectedUser(user);
-    setIsAssignModalOpen(true);
-  };
-
-  const handleSaveAssignment = async (userId, assignmentData) => {
-    try {
-      setOperationLoading(true);
-      
-      // API call for user assignment
-      const response = await fetch(`https://localhost:7777/gateway/Users/user-assign/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(assignmentData),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        await fetchUsers();
-        toast.success("Assignment updated successfully!");
-      } else {
-        toast.error(result.message || "Failed to update assignment");
-      }
-    } catch (err) {
-      toast.error("Error updating assignment. Please try again.");
-      console.error("Error updating assignment:", err);
-    } finally {
-      setOperationLoading(false);
-    }
-  };
-
   // API handlers
   const handleSaveUser = async (userData) => {
     try {
       setOperationLoading(true);
       
       if (editingUser) {
+        // Use the payload format that works based on previous testing
+        const updatePayload = {
+          id: editingUser.id, // Use 'id' instead of 'userId' as this format works
+          email: userData.email?.trim() || "",
+          userName: userData.userName?.trim() || "",
+          firstName: userData.firstName?.trim() || "",
+          middleName: userData.middleName?.trim() || "",
+          lastName: userData.lastName?.trim() || "",
+          country: userData.country?.trim() || "",
+          phoneNumber: userData.phoneNumber?.trim() || "",
+          gender: parseInt(userData.gender) || 0,
+          status: userData.status === "Active", // Use boolean format as this works
+          roleIds: Array.isArray(userData.roleIds) ? userData.roleIds : [],
+          permissionIds: Array.isArray(userData.permissionIds) ? userData.permissionIds : [],
+          moduleIds: Array.isArray(userData.moduleIds) ? userData.moduleIds : [],
+        };
+
+        // Validate required fields
+        if (!updatePayload.email || !updatePayload.userName || !updatePayload.firstName || !updatePayload.lastName) {
+          toast.error("Required fields are missing");
+          return;
+        }
+
+        console.log("Update payload:", updatePayload);
+
         // Update existing user
         const response = await fetch("https://localhost:7777/gateway/Users/user-update", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            id: editingUser.id,
-            ...userData,
-          }),
+          body: JSON.stringify(updatePayload),
         });
 
-        const result = await response.json();
-        if (result.success) {
+        console.log("Response status:", response.status);
+        
+        let result;
+        try {
+          result = await response.json();
+          console.log("Update response:", result);
+        } catch (jsonError) {
+          console.error("Failed to parse JSON response:", jsonError);
+          toast.error("Server response error. Please try again.");
+          return;
+        }
+        
+        // Check if the response is successful (either result.success is true OR status code is 200/201)
+        if (result.success || response.status === 200 || response.status === 201) {
           await fetchUsers();
           toast.success("User updated successfully!");
           setIsUserFormOpen(false);
           setEditingUser(null);
         } else {
-          toast.error(result.message || "Failed to update user");
+          console.error("Update failed - Status:", response.status, "Result:", result);
+          
+          // If we get a 400 error, let's try a different approach
+          if (response.status === 400) {
+            // Try with a simplified payload (sometimes the backend expects different field formats)
+            const simplifiedPayload = {
+              id: editingUser.id,
+              email: userData.email,
+              userName: userData.userName,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              country: userData.country,
+              phoneNumber: userData.phoneNumber,
+              gender: parseInt(userData.gender),
+              status: userData.status === "Active",
+              roleIds: userData.roleIds || [],
+              permissionIds: userData.permissionIds || [],
+              moduleIds: userData.moduleIds || []
+            };
+            
+            console.log("Trying simplified payload:", simplifiedPayload);
+            
+            const retryResponse = await fetch("https://localhost:7777/gateway/Users/user-update", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(simplifiedPayload),
+            });
+            
+            const retryResult = await retryResponse.json();
+            console.log("Retry response status:", retryResponse.status, "Result:", retryResult);
+            
+            if (retryResult.success || retryResponse.status === 200 || retryResponse.status === 201) {
+              await fetchUsers();
+              toast.success("User updated successfully!");
+              setIsUserFormOpen(false);
+              setEditingUser(null);
+            } else {
+              toast.error(retryResult.message || result.message || "Failed to update user");
+            }
+          } else {
+            toast.error(result.message || "Failed to update user");
+          }
         }
       } else {
+        // Prepare the create payload
+        const createPayload = {
+          email: userData.email,
+          userName: userData.userName,
+          firstName: userData.firstName,
+          middleName: userData.middleName || "",
+          lastName: userData.lastName,
+          country: userData.country,
+          phoneNumber: userData.phoneNumber,
+          gender: userData.gender,
+          status: userData.status === "Active",
+          roleIds: userData.roleIds || [],
+          permissionIds: userData.permissionIds || [],
+          moduleIds: userData.moduleIds || [],
+        };
+
+        console.log("Create payload:", createPayload);
+
         // Create new user
         const response = await fetch("https://localhost:7777/gateway/Users/user-create", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(userData),
+          body: JSON.stringify(createPayload),
         });
 
         const result = await response.json();
-        if (result.success) {
+        
+        // Check if the response is successful (either result.success is true OR status code is 200/201)
+        if (result.success || response.status === 200 || response.status === 201) {
           await fetchUsers();
           toast.success("User created successfully!");
           setIsUserFormOpen(false);
@@ -312,8 +378,8 @@ export const User = () => {
         }
       }
     } catch (err) {
-      toast.error("Error saving user. Please try again.");
       console.error("Error saving user:", err);
+      toast.error("Error saving user. Please try again.");
     } finally {
       setOperationLoading(false);
     }
@@ -425,6 +491,8 @@ export const User = () => {
                   </span>
                 </th>
                 <th>Roles</th>
+                <th>Permissions</th>
+                <th>Modules</th>
                 <th>Country</th>
                 <th
                   className={getSortClass("status")}
@@ -466,6 +534,42 @@ export const User = () => {
                       <span className="no-roles">No roles</span>
                     )}
                   </td>
+                  <td className="user-permissions">
+                    {user.permissions?.length > 0 ? (
+                      <div className="permissions-display">
+                        {user.permissions.slice(0, 2).map((permission, idx) => (
+                          <span key={`${user.id}-permission-${idx}`} className="permission-badge">
+                            {permission}
+                          </span>
+                        ))}
+                        {user.permissions.length > 2 && (
+                          <span className="permission-more">
+                            +{user.permissions.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="no-permissions">No permissions</span>
+                    )}
+                  </td>
+                  <td className="user-modules">
+                    {user.modules?.length > 0 ? (
+                      <div className="modules-display">
+                        {user.modules.slice(0, 2).map((module, idx) => (
+                          <span key={`${user.id}-module-${idx}`} className="module-badge">
+                            {module}
+                          </span>
+                        ))}
+                        {user.modules.length > 2 && (
+                          <span className="module-more">
+                            +{user.modules.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="no-modules">No modules</span>
+                    )}
+                  </td>
                   <td className="user-country">{user.country || "N/A"}</td>
                   <td>
                     <span className={`status ${user.status?.toLowerCase()}`}>
@@ -488,14 +592,6 @@ export const User = () => {
                       disabled={operationLoading}
                     >
                       ✏️
-                    </button>
-                    <button
-                      className="btn-assign"
-                      title="Assign Roles/Permissions/Modules"
-                      onClick={() => handleAssignUser(user)}
-                      disabled={operationLoading}
-                    >
-                      🔧
                     </button>
                     <button
                       className="btn-delete"
@@ -610,17 +706,6 @@ export const User = () => {
           setSelectedUser(null);
         }}
         user={selectedUser}
-      />
-
-      {/* User Assignment Modal */}
-      <CommonAssignModal
-        isOpen={isAssignModalOpen}
-        onClose={() => {
-          setIsAssignModalOpen(false);
-          setSelectedUser(null);
-        }}
-        user={selectedUser}
-        onSave={handleSaveAssignment}
       />
     </div>
   );

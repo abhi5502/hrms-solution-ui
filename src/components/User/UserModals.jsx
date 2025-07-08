@@ -4,6 +4,7 @@ import "./UserModals.css";
 
 // Add/Edit User Modal
 export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
+  const [activeTab, setActiveTab] = useState("basic");
   const [formData, setFormData] = useState({
     email: "",
     userName: "",
@@ -13,6 +14,7 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
     country: "",
     phoneNumber: "",
     gender: 0, // 0 = Male, 1 = Female
+    status: "Active", // Add status field
     roleIds: [],
     permissionIds: [],
     moduleIds: [],
@@ -24,16 +26,52 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
   const [availableModules, setAvailableModules] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Search states for filtering
+  const [roleSearchTerm, setRoleSearchTerm] = useState("");
+  const [permissionSearchTerm, setPermissionSearchTerm] = useState("");
+  const [moduleSearchTerm, setModuleSearchTerm] = useState("");
+
   useEffect(() => {
     if (isOpen) {
+      document.body.classList.add('modal-open');
       fetchRoles();
       fetchPermissions();
       fetchModules();
+    } else {
+      document.body.classList.remove('modal-open');
     }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
   }, [isOpen]);
 
   useEffect(() => {
     if (user) {
+      // Convert role/permission/module names to IDs for editing
+      let roleIds = [];
+      let permissionIds = [];
+      let moduleIds = [];
+
+      if (user.roles && availableRoles.length > 0) {
+        roleIds = availableRoles
+          .filter(role => user.roles.includes(role.name))
+          .map(role => role.id);
+      }
+
+      if (user.permissions && availablePermissions.length > 0) {
+        permissionIds = availablePermissions
+          .filter(permission => user.permissions.includes(permission.name))
+          .map(permission => permission.id);
+      }
+
+      if (user.modules && availableModules.length > 0) {
+        moduleIds = availableModules
+          .filter(module => user.modules.includes(module.name))
+          .map(module => module.id);
+      }
+
       setFormData({
         email: user.email || "",
         userName: user.userName || "",
@@ -43,9 +81,10 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
         country: user.country || "",
         phoneNumber: user.phoneNumber || "",
         gender: user.gender === "Female" ? 1 : 0,
-        roleIds: user.roleIds || [],
-        permissionIds: user.permissionIds || [],
-        moduleIds: user.moduleIds || [],
+        status: user.status || "Active",
+        roleIds: roleIds,
+        permissionIds: permissionIds,
+        moduleIds: moduleIds,
       });
     } else {
       setFormData({
@@ -57,13 +96,15 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
         country: "",
         phoneNumber: "",
         gender: 0,
+        status: "Active",
         roleIds: [],
         permissionIds: [],
         moduleIds: [],
       });
     }
     setErrors({});
-  }, [user, isOpen]);
+    setActiveTab("basic");
+  }, [user, isOpen, availableRoles, availablePermissions, availableModules]);
 
   const fetchRoles = async () => {
     try {
@@ -103,14 +144,17 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
 
   const validateForm = () => {
     const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!/\S+@\S+\.\S+/.test(formData.email))
+    else if (!emailRegex.test(formData.email))
       newErrors.email = "Email is invalid";
+    if (!formData.userName.trim()) newErrors.userName = "Username is required";
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.country.trim()) newErrors.country = "Country is required";
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+    if (!formData.status) newErrors.status = "Status is required";
     if (formData.roleIds.length === 0)
       newErrors.roleIds = "At least one role is required";
 
@@ -118,8 +162,16 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const getButtonText = (loading, user) => {
+    if (loading) return "Saving...";
+    return user ? "Update User" : "Create User";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form data being submitted:", formData);
+    console.log("Form validation result:", validateForm());
+    
     if (validateForm()) {
       setLoading(true);
       try {
@@ -129,6 +181,8 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
       } finally {
         setLoading(false);
       }
+    } else {
+      console.log("Form validation errors:", errors);
     }
   };
 
@@ -167,224 +221,554 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
     }
   };
 
+  // Handle assign all functionality
+  const handleAssignAll = (type) => {
+    const fieldName = `${type}Ids`;
+    let allIds = [];
+    
+    if (type === "role") {
+      allIds = availableRoles.filter(item => item.status === "Active").map(item => item.id);
+    } else if (type === "permission") {
+      allIds = availablePermissions.filter(item => item.status === "Active").map(item => item.id);
+    } else if (type === "module") {
+      allIds = availableModules.filter(item => item.status === "Active").map(item => item.id);
+    }
+
+    setFormData({
+      ...formData,
+      [fieldName]: allIds,
+    });
+
+    // Clear error for this field
+    if (errors[fieldName]) {
+      setErrors({
+        ...errors,
+        [fieldName]: "",
+      });
+    }
+  };
+
+  // Handle remove all functionality
+  const handleRemoveAll = (type) => {
+    const fieldName = `${type}Ids`;
+    
+    setFormData({
+      ...formData,
+      [fieldName]: [],
+    });
+
+    // Clear error for this field
+    if (errors[fieldName]) {
+      setErrors({
+        ...errors,
+        [fieldName]: "",
+      });
+    }
+  };
+
+  // Get count of selected items
+  const getSelectedCount = (type) => {
+    const fieldName = `${type}Ids`;
+    return formData[fieldName].length;
+  };
+
+  // Get total available count
+  const getTotalCount = (type) => {
+    if (type === "role") return availableRoles.filter(item => item.status === "Active").length;
+    if (type === "permission") return availablePermissions.filter(item => item.status === "Active").length;
+    if (type === "module") return availableModules.filter(item => item.status === "Active").length;
+    return 0;
+  };
+
+  // Filter functions for search
+  const getFilteredRoles = () => {
+    return availableRoles
+      .filter(role => role.status === "Active")
+      .filter(role => 
+        role.name.toLowerCase().includes(roleSearchTerm.toLowerCase())
+      );
+  };
+
+  const getFilteredPermissions = () => {
+    return availablePermissions
+      .filter(permission => permission.status === "Active")
+      .filter(permission => 
+        permission.name.toLowerCase().includes(permissionSearchTerm.toLowerCase())
+      );
+  };
+
+  const getFilteredModules = () => {
+    return availableModules
+      .filter(module => module.status === "Active")
+      .filter(module => 
+        module.name.toLowerCase().includes(moduleSearchTerm.toLowerCase())
+      );
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content user-form-modal">
+      <div className="modal-content user-form-modal-tabs">
         <div className="modal-header">
-          <h2>{user ? "Edit User" : "Add New User"}</h2>
+          {user ? (
+            <h6 className="edit-user-title">
+              Edit User : <span className="user-email-italic">({user.email})</span>
+            </h6>
+          ) : (
+            <h2>Add New User</h2>
+          )}
           <button className="close-btn" onClick={onClose} type="button">
             ×
           </button>
         </div>
 
         <div className="modal-body">
-          <form onSubmit={handleSubmit} className="user-form">
-            {/* Basic Information Section */}
-            <div className="form-section">
-              <h3 className="form-section-title">Basic Information</h3>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="email" className="required-field">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={errors.email ? "error" : ""}
-                    placeholder="Enter email address"
-                  />
-                  {errors.email && <span className="error-text">{errors.email}</span>}
-                </div>
+          {/* Tab Navigation */}
+          <div className="tab-navigation">
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "basic" ? "active" : ""}`}
+              onClick={() => setActiveTab("basic")}
+            >
+              Basic Info
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "roles" ? "active" : ""}`}
+              onClick={() => setActiveTab("roles")}
+            >
+              Roles ({getSelectedCount("role")})
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "permissions" ? "active" : ""}`}
+              onClick={() => setActiveTab("permissions")}
+            >
+              Permissions ({getSelectedCount("permission")})
+            </button>
+            <button
+              type="button"
+              className={`tab-btn ${activeTab === "modules" ? "active" : ""}`}
+              onClick={() => setActiveTab("modules")}
+            >
+              Modules ({getSelectedCount("module")})
+            </button>
+          </div>
 
-                <div className="form-group">
-                  <label htmlFor="userName">Username</label>
-                  <input
-                    type="text"
-                    id="userName"
-                    name="userName"
-                    value={formData.userName}
-                    onChange={handleInputChange}
-                    placeholder="Enter username"
-                  />
-                </div>
-              </div>
+          <form onSubmit={handleSubmit} className="user-form-tabs">
+            {/* Basic Information Tab */}
+            {activeTab === "basic" && (
+              <div className="tab-content">
+                <div className="form-section">
+                  <h3 className="form-section-title">Basic Information</h3>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="email" className="required-field">Email</label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={errors.email ? "error" : ""}
+                        placeholder="Enter email address"
+                      />
+                      {errors.email && <span className="error-text">{errors.email}</span>}
+                    </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName" className="required-field">First Name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    className={errors.firstName ? "error" : ""}
-                    placeholder="Enter first name"
-                  />
-                  {errors.firstName && <span className="error-text">{errors.firstName}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="middleName">Middle Name</label>
-                  <input
-                    type="text"
-                    id="middleName"
-                    name="middleName"
-                    value={formData.middleName}
-                    onChange={handleInputChange}
-                    placeholder="Enter middle name (optional)"
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="lastName" className="required-field">Last Name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    className={errors.lastName ? "error" : ""}
-                    placeholder="Enter last name"
-                  />
-                  {errors.lastName && <span className="error-text">{errors.lastName}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="gender">Gender</label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                  >
-                    <option value={0}>Male</option>
-                    <option value={1}>Female</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="phoneNumber" className="required-field">Phone Number</label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className={errors.phoneNumber ? "error" : ""}
-                    placeholder="Enter phone number"
-                  />
-                  {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="country" className="required-field">Country</label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    className={errors.country ? "error" : ""}
-                    placeholder="Enter country"
-                  />
-                  {errors.country && <span className="error-text">{errors.country}</span>}
-                </div>
-              </div>
-            </div>
-
-            {/* Roles Section */}
-            <div className="form-section">
-              <h3 className="form-section-title">Roles *</h3>
-              {errors.roleIds && <span className="error-text">{errors.roleIds}</span>}
-              
-              <div className="selection-grid">
-                {availableRoles.map((role) => (
-                  <div
-                    key={role.id}
-                    className={`checkbox-item ${
-                      formData.roleIds.includes(role.id) ? "selected" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      id={`role-${role.id}`}
-                      checked={formData.roleIds.includes(role.id)}
-                      onChange={(e) =>
-                        handleCheckboxChange("role", role.id, e.target.checked)
-                      }
-                    />
-                    <label htmlFor={`role-${role.id}`} className="checkbox-label">
-                      {role.name}
-                    </label>
+                    <div className="form-group">
+                      <label htmlFor="userName" className="required-field">Username</label>
+                      <input
+                        type="text"
+                        id="userName"
+                        name="userName"
+                        value={formData.userName}
+                        onChange={handleInputChange}
+                        className={errors.userName ? "error" : ""}
+                        placeholder="Enter username"
+                      />
+                      {errors.userName && <span className="error-text">{errors.userName}</span>}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Permissions Section */}
-            <div className="form-section">
-              <h3 className="form-section-title">Permissions</h3>
-              
-              <div className="selection-grid">
-                {availablePermissions.map((permission) => (
-                  <div
-                    key={permission.id}
-                    className={`checkbox-item ${
-                      formData.permissionIds.includes(permission.id) ? "selected" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      id={`permission-${permission.id}`}
-                      checked={formData.permissionIds.includes(permission.id)}
-                      onChange={(e) =>
-                        handleCheckboxChange("permission", permission.id, e.target.checked)
-                      }
-                    />
-                    <label htmlFor={`permission-${permission.id}`} className="checkbox-label">
-                      {permission.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="firstName" className="required-field">First Name</label>
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className={errors.firstName ? "error" : ""}
+                        placeholder="Enter first name"
+                      />
+                      {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+                    </div>
 
-            {/* Modules Section */}
-            <div className="form-section">
-              <h3 className="form-section-title">Modules</h3>
-              
-              <div className="selection-grid">
-                {availableModules.map((module) => (
-                  <div
-                    key={module.id}
-                    className={`checkbox-item ${
-                      formData.moduleIds.includes(module.id) ? "selected" : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      id={`module-${module.id}`}
-                      checked={formData.moduleIds.includes(module.id)}
-                      onChange={(e) =>
-                        handleCheckboxChange("module", module.id, e.target.checked)
-                      }
-                    />
-                    <label htmlFor={`module-${module.id}`} className="checkbox-label">
-                      {module.name}
-                    </label>
+                    <div className="form-group">
+                      <label htmlFor="middleName">Middle Name</label>
+                      <input
+                        type="text"
+                        id="middleName"
+                        name="middleName"
+                        value={formData.middleName}
+                        onChange={handleInputChange}
+                        placeholder="Enter middle name (optional)"
+                      />
+                    </div>
                   </div>
-                ))}
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="lastName" className="required-field">Last Name</label>
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className={errors.lastName ? "error" : ""}
+                        placeholder="Enter last name"
+                      />
+                      {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="gender">Gender</label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                      >
+                        <option value={0}>Male</option>
+                        <option value={1}>Female</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="phoneNumber" className="required-field">Phone Number</label>
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleInputChange}
+                        className={errors.phoneNumber ? "error" : ""}
+                        placeholder="Enter phone number"
+                      />
+                      {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="country" className="required-field">Country</label>
+                      <input
+                        type="text"
+                        id="country"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        className={errors.country ? "error" : ""}
+                        placeholder="Enter country"
+                      />
+                      {errors.country && <span className="error-text">{errors.country}</span>}
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="status" className="required-field">Status</label>
+                      <select
+                        id="status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        className={errors.status ? "error" : ""}
+                      >
+                        <option value="">Select Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                      {errors.status && <span className="error-text">{errors.status}</span>}
+                    </div>
+                  </div>
+
+                  {/* Next Steps Information */}
+                  <div className="form-info-section">
+                    <div className="info-card">
+                      <div className="info-header">
+                        <span className="info-icon">💡</span>
+                        <h4>Next Steps</h4>
+                      </div>
+                      <div className="info-content">
+                        <p>After filling the basic information:</p>
+                        <ul>
+                          <li><strong>Roles tab:</strong> Assign at least one role (required)</li>
+                          <li><strong>Permissions tab:</strong> Select specific permissions (optional)</li>
+                          <li><strong>Modules tab:</strong> Choose accessible modules (optional)</li>
+                        </ul>
+                        <p className="info-note">
+                          <span className="required-indicator">*</span>{" "}
+                          At least one role must be assigned before creating the user.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Roles Tab */}
+            {activeTab === "roles" && (
+              <div className="tab-content">
+                <div className="form-section">
+                  {/* Search Box for Roles - NO CONTAINER */}
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Search roles... (Press Esc to clear)"
+                    value={roleSearchTerm}
+                    onChange={(e) => setRoleSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setRoleSearchTerm('');
+                      }
+                    }}
+                  />
+                  {roleSearchTerm && (
+                    <button 
+                      type="button"
+                      className="clear-search-btn" 
+                      onClick={() => setRoleSearchTerm('')}
+                    >
+                      ×
+                    </button>
+                  )}
+                  
+                  {/* Counts Display with Buttons on same line */}
+                  <div className="counts-with-buttons">
+                    <h6>Total Roles : <span className="count-number">{getTotalCount("role")}</span> Selected : <span className="count-number">{getSelectedCount("role")}</span></h6>
+                    <div className="action-buttons">
+                      <button
+                        type="button"
+                        className="btn-assign-all"
+                        onClick={() => handleAssignAll("role")}
+                        disabled={getSelectedCount("role") === getTotalCount("role")}
+                      >
+                        Assign All
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-remove-all"
+                        onClick={() => handleRemoveAll("role")}
+                        disabled={getSelectedCount("role") === 0}
+                      >
+                        Remove All
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {errors.roleIds && <span className="error-text">{errors.roleIds}</span>}
+                  
+                  <div className="selection-grid">
+                    {getFilteredRoles().map((role) => (
+                      <div
+                        key={role.id}
+                        className={`checkbox-item ${
+                          formData.roleIds.includes(role.id) ? "selected" : ""
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`role-${role.id}`}
+                          checked={formData.roleIds.includes(role.id)}
+                          onChange={(e) =>
+                            handleCheckboxChange("role", role.id, e.target.checked)
+                          }
+                        />
+                        <label htmlFor={`role-${role.id}`} className="checkbox-label">
+                          {role.name}
+                        </label>
+                      </div>
+                    ))}
+                    {getFilteredRoles().length === 0 && roleSearchTerm && (
+                      <div className="no-results">
+                        No roles found matching "{roleSearchTerm}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Permissions Tab */}
+            {activeTab === "permissions" && (
+              <div className="tab-content">
+                <div className="form-section">
+                  {/* Search Box for Permissions - NO CONTAINER */}
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Search permissions... (Press Esc to clear)"
+                    value={permissionSearchTerm}
+                    onChange={(e) => setPermissionSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setPermissionSearchTerm('');
+                      }
+                    }}
+                  />
+                  {permissionSearchTerm && (
+                    <button 
+                      type="button"
+                      className="clear-search-btn" 
+                      onClick={() => setPermissionSearchTerm('')}
+                    >
+                      ×
+                    </button>
+                  )}
+                  
+                  {/* Counts Display with Buttons on same line */}
+                  <div className="counts-with-buttons">
+                    <h6>Total Permissions : <span className="count-number">{getTotalCount("permission")}</span> Selected : <span className="count-number">{getSelectedCount("permission")}</span></h6>
+                    <div className="action-buttons">
+                      <button
+                        type="button"
+                        className="btn-assign-all"
+                        onClick={() => handleAssignAll("permission")}
+                        disabled={getSelectedCount("permission") === getTotalCount("permission")}
+                      >
+                        Assign All
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-remove-all"
+                        onClick={() => handleRemoveAll("permission")}
+                        disabled={getSelectedCount("permission") === 0}
+                      >
+                        Remove All
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {errors.permissionIds && <span className="error-text">{errors.permissionIds}</span>}
+                  
+                  <div className="selection-grid">
+                    {getFilteredPermissions().map((permission) => (
+                      <div
+                        key={permission.id}
+                        className={`checkbox-item ${
+                          formData.permissionIds.includes(permission.id) ? "selected" : ""
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`permission-${permission.id}`}
+                          checked={formData.permissionIds.includes(permission.id)}
+                          onChange={(e) =>
+                            handleCheckboxChange("permission", permission.id, e.target.checked)
+                          }
+                        />
+                        <label htmlFor={`permission-${permission.id}`} className="checkbox-label">
+                          {permission.name}
+                        </label>
+                      </div>
+                    ))}
+                    {getFilteredPermissions().length === 0 && permissionSearchTerm && (
+                      <div className="no-results">
+                        No permissions found matching "{permissionSearchTerm}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modules Tab */}
+            {activeTab === "modules" && (
+              <div className="tab-content">
+                <div className="form-section">
+                  {/* Search Box for Modules - NO CONTAINER */}
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder="Search modules... (Press Esc to clear)"
+                    value={moduleSearchTerm}
+                    onChange={(e) => setModuleSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setModuleSearchTerm('');
+                      }
+                    }}
+                  />
+                  {moduleSearchTerm && (
+                    <button 
+                      type="button"
+                      className="clear-search-btn" 
+                      onClick={() => setModuleSearchTerm('')}
+                    >
+                      ×
+                    </button>
+                  )}
+                  
+                  {/* Counts Display with Buttons on same line */}
+                  <div className="counts-with-buttons">
+                    <h6>Total Modules : <span className="count-number">{getTotalCount("module")}</span> Selected : <span className="count-number">{getSelectedCount("module")}</span></h6>
+                    <div className="action-buttons">
+                      <button
+                        type="button"
+                        className="btn-assign-all"
+                        onClick={() => handleAssignAll("module")}
+                        disabled={getSelectedCount("module") === getTotalCount("module")}
+                      >
+                        Assign All
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-remove-all"
+                        onClick={() => handleRemoveAll("module")}
+                        disabled={getSelectedCount("module") === 0}
+                      >
+                        Remove All
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="selection-grid">
+                    {getFilteredModules().map((module) => (
+                      <div
+                        key={module.id}
+                        className={`checkbox-item ${
+                          formData.moduleIds.includes(module.id) ? "selected" : ""
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`module-${module.id}`}
+                          checked={formData.moduleIds.includes(module.id)}
+                          onChange={(e) =>
+                            handleCheckboxChange("module", module.id, e.target.checked)
+                          }
+                        />
+                        <label htmlFor={`module-${module.id}`} className="checkbox-label">
+                          {module.name}
+                        </label>
+                      </div>
+                    ))}
+                    {getFilteredModules().length === 0 && moduleSearchTerm && (
+                      <div className="no-results">
+                        No modules found matching "{moduleSearchTerm}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
 
@@ -403,8 +787,7 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {/* eslint-disable-next-line no-nested-ternary */}
-            {loading ? "Saving..." : (user ? "Update User" : "Create User")}
+            {getButtonText(loading, user)}
           </button>
         </div>
       </div>
@@ -414,13 +797,47 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
 
 // User View Modal
 export const UserViewModal = ({ isOpen, onClose, user }) => {
+  // Add body class management for blur effect
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen || !user) return null;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getFullName = () => {
+    if (user.fullName) return user.fullName;
+    const parts = [user.firstName, user.middleName, user.lastName].filter(Boolean);
+    return parts.length > 0 ? parts.join(" ") : "N/A";
+  };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content user-view-modal">
         <div className="modal-header">
-          <h2>User Details</h2>
+          <div className="header-content">
+            <h2>User Profile</h2>
+          </div>
           <button className="close-btn" onClick={onClose}>
             ×
           </button>
@@ -430,88 +847,130 @@ export const UserViewModal = ({ isOpen, onClose, user }) => {
           <div className="user-details">
             {/* Personal Information */}
             <div className="detail-section">
-              <h3>Personal Information</h3>
-              <div className="detail-grid">
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Full Name</label>
-                  <span>{user.fullName || `${user.firstName} ${user.lastName}`}</span>
+              <div className="section-header">
+                <h3>Personal Information</h3>
+                <div className="section-icon">👤</div>
+              </div>
+              <div className="detail-rows">
+                <div className="detail-row">
+                  <div className="detail-label">Full Name</div>
+                  <div className="detail-value">{getFullName()}</div>
                 </div>
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Email</label>
-                  <span>{user.email}</span>
+                <div className="detail-row">
+                  <div className="detail-label">Username</div>
+                  <div className="detail-value">{user.userName || "N/A"}</div>
                 </div>
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Phone</label>
-                  <span>{user.phoneNumber || "N/A"}</span>
+                <div className="detail-row">
+                  <div className="detail-label">Email Address</div>
+                  <div className="detail-value">{user.email}</div>
                 </div>
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Gender</label>
-                  <span>{user.gender || "N/A"}</span>
+                <div className="detail-row">
+                  <div className="detail-label">Phone Number</div>
+                  <div className="detail-value">{user.phoneNumber || "N/A"}</div>
                 </div>
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Country</label>
-                  <span>{user.country || "N/A"}</span>
+                <div className="detail-row">
+                  <div className="detail-label">Gender</div>
+                  <div className="detail-value">{user.gender || "N/A"}</div>
                 </div>
-                <div className="detail-item">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label>Status</label>
-                  <span className={`status ${user.status?.toLowerCase()}`}>
-                    {user.status || "Unknown"}
+                <div className="detail-row">
+                  <div className="detail-label">Country</div>
+                  <div className="detail-value">{user.country || "N/A"}</div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-label">Account Status</div>
+                  <div className="detail-value">
+                    <span className={`status ${user.status?.toLowerCase()}`}>
+                      {user.status || "Unknown"}
+                    </span>
+                  </div>
+                </div>
+                {(user.createdAt || user.createdDate) && (
+                  <div className="detail-row">
+                    <div className="detail-label">Created Date</div>
+                    <div className="detail-value">
+                      {formatDate(user.createdAt || user.createdDate)}
+                    </div>
+                  </div>
+                )}
+                {(user.updatedAt || user.modifiedDate || user.lastModified) && (
+                  <div className="detail-row">
+                    <div className="detail-label">Last Modified</div>
+                    <div className="detail-value">
+                      {formatDate(user.updatedAt || user.modifiedDate || user.lastModified)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Access Control */}
+            <div className="detail-section">
+              <div className="section-header">
+                <h3>Access Control</h3>
+                <div className="section-icon">🔐</div>
+              </div>
+              
+              {/* Roles */}
+              <div className="access-subsection">
+                <div className="subsection-header">
+                  <h4>Assigned Roles</h4>
+                  <span className="count-badge">
+                    {user.roles?.length || 0}
                   </span>
                 </div>
+                <div className="badges-display">
+                  {user.roles?.length > 0 ? (
+                    user.roles.map((role, index) => (
+                      <span key={`role-${index}-${role}`} className="role-badge">
+                        {role}
+                      </span>
+                    ))
+                  ) : (
+                    <div className="no-data">No roles assigned</div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Roles */}
-            <div className="detail-section">
-              <h3>Assigned Roles</h3>
-              <div className="badges-display">
-                {user.roles?.length > 0 ? (
-                  user.roles.map((role, index) => (
-                    <span key={`role-${index}-${role}`} className="role-badge">
-                      {role}
-                    </span>
-                  ))
-                ) : (
-                  <span>No roles assigned</span>
-                )}
+              {/* Permissions */}
+              <div className="access-subsection">
+                <div className="subsection-header">
+                  <h4>Permissions</h4>
+                  <span className="count-badge">
+                    {user.permissions?.length || 0}
+                  </span>
+                </div>
+                <div className="badges-display">
+                  {user.permissions?.length > 0 ? (
+                    user.permissions.map((permission, index) => (
+                      <span key={`permission-${index}-${permission}`} className="permission-badge">
+                        {permission}
+                      </span>
+                    ))
+                  ) : (
+                    <div className="no-data">No permissions assigned</div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Permissions */}
-            <div className="detail-section">
-              <h3>Permissions</h3>
-              <div className="badges-display">
-                {user.permissions?.length > 0 ? (
-                  user.permissions.map((permission, index) => (
-                    <span key={`permission-${index}-${permission}`} className="permission-badge">
-                      {permission}
-                    </span>
-                  ))
-                ) : (
-                  <span>No permissions assigned</span>
-                )}
-              </div>
-            </div>
-
-            {/* Modules */}
-            <div className="detail-section">
-              <h3>Accessible Modules</h3>
-              <div className="badges-display">
-                {user.modules?.length > 0 ? (
-                  user.modules.map((module, index) => (
-                    <span key={`module-${index}-${module}`} className="module-badge">
-                      {module}
-                    </span>
-                  ))
-                ) : (
-                  <span>No modules assigned</span>
-                )}
+              {/* Modules */}
+              <div className="access-subsection">
+                <div className="subsection-header">
+                  <h4>Accessible Modules</h4>
+                  <span className="count-badge">
+                    {user.modules?.length || 0}
+                  </span>
+                </div>
+                <div className="badges-display">
+                  {user.modules?.length > 0 ? (
+                    user.modules.map((module, index) => (
+                      <span key={`module-${index}-${module}`} className="module-badge">
+                        {module}
+                      </span>
+                    ))
+                  ) : (
+                    <div className="no-data">No modules assigned</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -530,6 +989,20 @@ export const UserViewModal = ({ isOpen, onClose, user }) => {
 // Delete Confirmation Modal
 export const DeleteConfirmModal = ({ isOpen, onClose, user, onConfirm }) => {
   const [loading, setLoading] = useState(false);
+
+  // Add body class management for blur effect
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   const handleConfirm = async () => {
     if (user) {
@@ -758,9 +1231,17 @@ export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
     return {
       items: getFilteredItems(items, searchTerm),
       assignedIds,
-      type: activeTab === "roles" ? "roleIds" : 
-            activeTab === "permissions" ? "permissionIds" : "moduleIds"
+      type: getFieldType(activeTab)
     };
+  };
+
+  const getFieldType = (tab) => {
+    switch(tab) {
+      case "roles": return "roleIds";
+      case "permissions": return "permissionIds";
+      case "modules": return "moduleIds";
+      default: return "roleIds";
+    }
   };
 
   const renderItems = (items, type, assignedIds) => {
@@ -785,6 +1266,14 @@ export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
           key={item.id}
           className={`assignment-item ${assignedIds.includes(item.id) ? 'assigned' : ''}`}
           onClick={() => handleItemToggle(item.id, type)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleItemToggle(item.id, type);
+            }
+          }}
+          role="button"
+          tabIndex={0}
         >
           <div className="item-info">
             <h4>{highlightSearchTerm(itemName)}</h4>
@@ -809,13 +1298,12 @@ export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
     const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
     
-    return parts.map((part, index) => 
-      regex.test(part) ? (
-        <span key={index} className="search-highlight">{part}</span>
-      ) : (
-        part
-      )
-    );
+    return parts.map((part, index) => {
+      if (regex.test(part)) {
+        return <span key={`highlight-${index}`} className="search-highlight">{part}</span>;
+      }
+      return part;
+    });
   };
 
   if (!isOpen) return null;

@@ -516,6 +516,18 @@
   min-width: 150px;
 }
 
+.user-permissions {
+  min-width: 120px;
+}
+
+.user-modules {
+  min-width: 120px;
+}
+
+.user-roles {
+  min-width: 120px;
+}
+
 .user-action {
   font-weight: 500;
   color: #67b7dc;
@@ -536,6 +548,12 @@
     min-width: 120px;
   }
   
+  .user-permissions,
+  .user-modules,
+  .user-roles {
+    min-width: 100px;
+  }
+  
   .user-action {
     font-size: 12px;
     min-width: 70px;
@@ -550,6 +568,12 @@
   .user-name {
     font-size: 12px;
     min-width: 100px;
+  }
+  
+  .user-permissions,
+  .user-modules,
+  .user-roles {
+    min-width: 80px;
   }
   
   .user-action {
@@ -1498,26 +1522,120 @@ html, body {
   font-size: 12px;
 }
 
+/* Permission Badges in User Table */
+.permissions-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.permission-badge {
+  background: linear-gradient(135deg, #ed8936, #dd6b20);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(237, 137, 54, 0.3);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.permission-more {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.no-permissions {
+  color: #888;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Module Badges in User Table */
+.modules-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.module-badge {
+  background: linear-gradient(135deg, #38b2ac, #319795);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(56, 178, 172, 0.3);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.module-more {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.no-modules {
+  color: #888;
+  font-style: italic;
+  font-size: 12px;
+}
+
 /* Mobile Responsive for Role Badges */
 @media (max-width: 768px) {
-  .roles-display {
+  .roles-display,
+  .permissions-display,
+  .modules-display {
     gap: 4px;
   }
   
   .role-badge,
-  .role-more {
+  .role-more,
+  .permission-badge,
+  .permission-more,
+  .module-badge,
+  .module-more {
     padding: 3px 6px;
     font-size: 9px;
   }
 }
 
 @media (max-width: 480px) {
-  .roles-display {
+  .roles-display,
+  .permissions-display,
+  .modules-display {
     gap: 3px;
   }
   
   .role-badge,
-  .role-more {
+  .role-more,
+  .permission-badge,
+  .permission-more,
+  .module-badge,
+  .module-more {
     padding: 2px 5px;
     font-size: 8px;
   }
