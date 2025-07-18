@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+
 import React, { useState, useEffect } from "react";
 import "./UserModals.css";
 
@@ -13,6 +13,7 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
     lastName: "",
     country: "",
     phoneNumber: "",
+    password: "", // Add password field
     gender: 0, // 0 = Male, 1 = Female
     status: "Active", // Add status field
     roleIds: [],
@@ -80,6 +81,7 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
         lastName: user.lastName || "",
         country: user.country || "",
         phoneNumber: user.phoneNumber || "",
+        password: "", // Don't populate password when editing
         gender: user.gender === "Female" ? 1 : 0,
         status: user.status || "Active",
         roleIds: roleIds,
@@ -95,6 +97,7 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
         lastName: "",
         country: "",
         phoneNumber: "",
+        password: "", // Reset password field
         gender: 0,
         status: "Active",
         roleIds: [],
@@ -154,6 +157,16 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.country.trim()) newErrors.country = "Country is required";
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+    
+    // Password validation - only required for new users
+    if (!user) {
+      if (!formData.password.trim()) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+    }
+    
     if (!formData.status) newErrors.status = "Status is required";
     if (formData.roleIds.length === 0)
       newErrors.roleIds = "At least one role is required";
@@ -393,6 +406,26 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
                     </div>
                   </div>
 
+                  {/* Password field - only show when creating new user */}
+                  {!user && (
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="password" className="required-field">Password</label>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          className={errors.password ? "error" : ""}
+                          placeholder="Enter password (minimum 6 characters)"
+                          autoComplete="new-password"
+                        />
+                        {errors.password && <span className="error-text">{errors.password}</span>}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="firstName" className="required-field">First Name</label>
@@ -514,7 +547,11 @@ export const UserFormModal = ({ isOpen, onClose, user = null, onSave }) => {
                         </ul>
                         <p className="info-note">
                           <span className="required-indicator">*</span>{" "}
-                          At least one role must be assigned before creating the user.
+                          {!user ? (
+                            "Password and at least one role must be assigned before creating the user."
+                          ) : (
+                            "At least one role must be assigned before updating the user."
+                          )}
                         </p>
                       </div>
                     </div>
@@ -863,6 +900,14 @@ export const UserViewModal = ({ isOpen, onClose, user }) => {
                 <div className="detail-row">
                   <div className="detail-label">Email Address</div>
                   <div className="detail-value">{user.email}</div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-label">Created By</div>
+                  <div className="detail-value">{user.createdBy && user.createdBy.trim() !== '' ? user.createdBy : 'N/A'}</div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-label">Modified By</div>
+                  <div className="detail-value">{user.modifiedBy && user.modifiedBy.trim() !== '' ? user.modifiedBy : 'N/A'}</div>
                 </div>
                 <div className="detail-row">
                   <div className="detail-label">Phone Number</div>

@@ -5,6 +5,7 @@ import {
   DeleteConfirmModal,
   ViewStateModal,
 } from "./StateModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./state.css";
 
 // Skeleton Loading Component
@@ -97,11 +98,13 @@ export const State = () => {
 
   const fetchStates = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:7777/gateway/State/states-all"
-      );
-      const result = await response.json();
-      console.log("States API Response:", result); // Debug log
+      setError(null);
+      
+      console.log("Fetching states from:", API_ENDPOINTS.STATES.GET_ALL);
+      
+      const result = await apiHelper.get(API_ENDPOINTS.STATES.GET_ALL);
+      
+      console.log("States API Response:", result);
 
       if (result.success) {
         // Map API response fields to component expected fields
@@ -109,40 +112,43 @@ export const State = () => {
           id: state.id,
           name: state.stateName,
           countryName: state.countryName,
-          status: state.status === 'True' ? 'Active' : 'Inactive',
+          countryId: state.countryId, // Add countryId for editing
+           status: state.status === 'True' ? 'Active' : 'Inactive', 
           createdAt: state.createdDate,
           updatedAt: state.modifiedDate
         }));
         
-        console.log("Mapped States:", mappedStates); // Debug log
+        console.log("Mapped States:", mappedStates);
         setStates(mappedStates);
         setTotalPages(Math.ceil(mappedStates.length / itemsPerPage));
       } else {
         setError("Failed to fetch states");
+        toast.error("Failed to fetch states");
       }
     } catch (err) {
       setError("Error connecting to server");
+      toast.error("Error connecting to server");
       console.error("Error fetching states:", err);
     }
   };
 
   const fetchCountries = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:7777/gateway/Country/countries-all"
-      );
-      const result = await response.json();
-      console.log("Countries API Response:", result); // Debug log
+      console.log("Fetching countries from:", API_ENDPOINTS.COUNTRIES.GET_ALL);
+      
+      const result = await apiHelper.get(API_ENDPOINTS.COUNTRIES.GET_ALL);
+      
+      console.log("Countries API Response:", result);
 
       if (result.success) {
         // Map API response fields to component expected fields
         const mappedCountries = result.data.map(country => ({
           id: country.id,
           name: country.countryName,
-          status: country.status === 'True' ? 'Active' : 'Inactive'
+          status: state.status === 'True' ? 'Active' : 'Inactive', // Direct mapping
         }));
         
-        console.log("Mapped Countries:", mappedCountries); // Debug log
+        console.log("Mapped Countries:", mappedCountries);
         setCountries(mappedCountries);
       } else {
         console.error("Failed to fetch countries");
@@ -286,6 +292,84 @@ export const State = () => {
     );
   };
 
+  // Helper: Handle API response for create/update
+  const handleStateApiResponse = async (
+    result,
+    stateData,
+    successMsg,
+    fetchStatesCallback
+  ) => {
+    if (result.success && (!result.statusCode || result.statusCode === 200)) {
+      await fetchStatesCallback();
+      toast.success(successMsg);
+      return true;
+    } else if (result.statusCode === 409) {
+      toast.error(
+        `State "${stateData.name}" already exists in this country! Please choose a different name.`
+      );
+    } else {
+      toast.error(
+        result.message ||
+          `Failed to ${successMsg
+            .toLowerCase()
+            .replace(" successfully!", "")}`
+      );
+    }
+    return false;
+  };
+
+  // Helper: Update state
+  const updateState = async (stateData) => {
+    try {
+      const requestData = {
+        id: editingState.id,
+        stateName: stateData.name,
+        countryId: stateData.countryId,
+        status: stateData.status.toLowerCase() === "active" // Boolean conversion
+      };
+
+      console.log("Update state request data:", requestData);
+
+      const result = await apiHelper.put(API_ENDPOINTS.STATES.UPDATE, requestData);
+
+      return await handleStateApiResponse(
+        result,
+        stateData,
+        "State updated successfully!",
+        fetchStates
+      );
+    } catch (err) {
+      console.error("Update state error:", err);
+      toast.error(`Failed to update state: ${err.message}`);
+      return false;
+    }
+  };
+
+  // Helper: Create state
+  const createState = async (stateData) => {
+    try {
+      const requestData = {
+        stateName: stateData.name,
+        countryId: stateData.countryId,
+      };
+
+      console.log("Create state request data:", requestData);
+
+      const result = await apiHelper.post(API_ENDPOINTS.STATES.CREATE, requestData);
+
+      return await handleStateApiResponse(
+        result,
+        stateData,
+        "State created successfully!",
+        fetchStates
+      );
+    } catch (err) {
+      console.error("Create state error:", err);
+      toast.error(`Failed to create state: ${err.message}`);
+      return false;
+    }
+  };
+
   const handleSaveState = async (stateData) => {
     try {
       setOperationLoading(true);
@@ -294,75 +378,33 @@ export const State = () => {
       const selectedCountry = countries.find(c => c.id === stateData.countryId);
       if (!selectedCountry) {
         toast.error("Please select a valid country");
-        setOperationLoading(false);
         return;
       }
 
       // Check for duplicate state name in the same country
       if (isDuplicateState(stateData.name, selectedCountry.name, editingState?.id)) {
         toast.error("State name already exists in this country");
-        setOperationLoading(false);
         return;
       }
 
+      let operationSuccessful = false;
+
       if (editingState) {
         // Update existing state
-        const response = await fetch(
-          "https://localhost:7777/gateway/State/state-update",
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: editingState.id,
-              stateName: stateData.name,
-              countryId: stateData.countryId,
-              status: stateData.status === "active",
-            }),
-          }
-        );
-
-        const result = await response.json();
-        if (result.success) {
-          console.log("State updated successfully:", result.data);
-          await fetchStates();
-          toast.success("State updated successfully!");
-          setIsStateFormOpen(false);
-          setEditingState(null);
-        } else {
-          toast.error(result.message || "Failed to update state");
-        }
+        operationSuccessful = await updateState(stateData);
       } else {
         // Create new state
-        const response = await fetch(
-          "https://localhost:7777/gateway/State/state-create",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              stateName: stateData.name,
-              countryId: stateData.countryId,
-              status: stateData.status === 'active' ? 'True' : 'False'
-            }),
-          }
-        );
+        operationSuccessful = await createState(stateData);
+      }
 
-        const result = await response.json();
-        if (result.success) {
-          console.log("State created successfully:", result.data);
-          await fetchStates();
-          toast.success("State created successfully!");
-          setIsStateFormOpen(false);
-        } else {
-          toast.error(result.message || "Failed to create state");
-        }
+      // Only close modal and clear editing state if the operation was successful
+      if (operationSuccessful) {
+        setIsStateFormOpen(false);
+        setEditingState(null);
       }
     } catch (err) {
-      console.error("Error in handleSaveState:", err);
       toast.error("Error saving state. Please try again.");
+      console.error("Error saving state:", err);
     } finally {
       setOperationLoading(false);
     }
@@ -372,15 +414,10 @@ export const State = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/State/state-delete/${stateId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.STATES.DELETE(stateId));
 
-      const result = await response.json();
       if (result.success) {
+        // Refresh the states list
         await fetchStates();
         toast.success("State deleted successfully!");
       } else {

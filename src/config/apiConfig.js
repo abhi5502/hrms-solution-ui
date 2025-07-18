@@ -1,198 +1,146 @@
-// API Configuration
-export const API_CONFIG = {
-  // Base URLs for different environments
-  DEVELOPMENT: "/api/", // Use proxy in development
-  //DEVELOPMENT: "https://localhost:7777/", // Direct to backend since CORS is configured
-  PRODUCTION: "https://your-api-domain.com/",
-  STAGING: "https://staging-api-domain.com/",
+// API Configuration - Centralized API endpoints
 
-  // Current environment
-  CURRENT: "/api/",
+// Base API URL
+const BASE_API_URL = "https://localhost:7777/gateway";
 
-  // Request timeout in milliseconds
-  TIMEOUT: 30000,
+// API Endpoints Configuration
+export const API_ENDPOINTS = {
 
-  // Retry configuration
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000,
 
-  // Authentication
-  TOKEN_KEY: "authToken",
-  REFRESH_TOKEN_KEY: "refreshToken",
+ // Users API
+USERS: {
+  GET_ALL: `${BASE_API_URL}/Users/get-all-user`,         
+  CREATE: `${BASE_API_URL}/Users/user-create`,          
+  UPDATE: `${BASE_API_URL}/Users/user-update`,           
+  DELETE: (id) => `${BASE_API_URL}/Users/user-delete/${id}`, 
+  GET_BY_ID: (id) => `${BASE_API_URL}/Users/get-user-by-id/${id}`, 
+},
 
-  // Headers
-  DEFAULT_HEADERS: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-};
 
-// API Endpoints
-export const ENDPOINTS = {
-  // Authentication
-  AUTH: {
-    LOGIN: "auth/login",
-    LOGOUT: "auth/logout",
-    REFRESH: "auth/refresh",
-    ME: "auth/me",
-    REGISTER: "auth/register",
-    FORGOT_PASSWORD: "auth/forgot-password",
-    RESET_PASSWORD: "auth/reset-password",
-    VERIFY_EMAIL: "auth/verify-email",
-  },
 
-  // Users Management
-  USERS: {
-    BASE: "gateway/users",
-    LIST: "gateway/users/get-all-user",
-    CREATE: "gateway/users/create",
-    GET: (id) => `gateway/users/${id}`,
-    UPDATE: (id) => `gateway/users/update/${id}`,
-    DELETE: (id) => `gateway/users/delete/${id}`,
-    ROLES: (id) => `gateway/users/${id}/roles`,
-    PERMISSIONS: (id) => `gateway/users/${id}/permissions`,
-    MODULES: (id) => `gateway/users/${id}/modules`,
-    STATUS: (id) => `gateway/users/${id}/status`,
-    BULK: "gateway/users/bulk",
-    STATS: "gateway/users/stats",
-    SEARCH: "gateway/users/search",
-    EXPORT: "gateway/users/export",
-    IMPORT: "gateway/users/import",
-  },
-
-  // Roles Management
+  // Roles API
   ROLES: {
-    BASE: "roles",
-    LIST: "roles",
-    CREATE: "roles",
-    GET: (id) => `roles/${id}`,
-    UPDATE: (id) => `roles/${id}`,
-    DELETE: (id) => `roles/${id}`,
-    PERMISSIONS: (id) => `roles/${id}/permissions`,
+    GET_ALL: `${BASE_API_URL}/Roles/get-all-role`,
+    CREATE: `${BASE_API_URL}/Roles/create-role`,
+    UPDATE: `${BASE_API_URL}/Roles/update-role`,
+    DELETE: (id) => `${BASE_API_URL}/Roles/delete-role/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/Roles/get-role-by-id/${id}`,
   },
 
-  // Permissions Management
+  // Permissions API 
   PERMISSIONS: {
-    BASE: "permissions",
-    LIST: "permissions",
-    CREATE: "permissions",
-    GET: (id) => `permissions/${id}`,
-    UPDATE: (id) => `permissions/${id}`,
-    DELETE: (id) => `permissions/${id}`,
+    GET_ALL: `${BASE_API_URL}/Permissions/permissions-all`,
+    CREATE: `${BASE_API_URL}/Permissions/create-permission`,
+    UPDATE: `${BASE_API_URL}/Permissions/update-permission`,
+    DELETE: (id) => `${BASE_API_URL}/Permissions/delete/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/Permissions/${id}`,
   },
 
-  // Modules Management
-  MODULES: {
-    BASE: "modules",
-    LIST: "modules",
-    CREATE: "modules",
-    GET: (id) => `modules/${id}`,
-    UPDATE: (id) => `modules/${id}`,
-    DELETE: (id) => `modules/${id}`,
+ // Modules API 
+MODULES: {
+  GET_ALL: `${BASE_API_URL}/Module/getall-module`,
+  CREATE: `${BASE_API_URL}/Module/create-module`,
+  UPDATE: `${BASE_API_URL}/Module/module-update`,
+  DELETE: (id) => `${BASE_API_URL}/Module/delete-module/${id}`,
+  GET_BY_ID: (id) => `${BASE_API_URL}/Module/get-module-by-id/${id}`,
+},
+
+  // Countries API
+  COUNTRIES: {
+    GET_ALL: `${BASE_API_URL}/Country/countries-all`,
+    CREATE: `${BASE_API_URL}/Country/country-create`,
+    UPDATE: `${BASE_API_URL}/Country/country-update`,
+    DELETE: (id) => `${BASE_API_URL}/Country/country-delete/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/Country/country-by-id/${id}`,
   },
 
-  // Employees Management
-  EMPLOYEES: {
-    BASE: "employees",
-    LIST: "employees",
-    CREATE: "employees",
-    GET: (id) => `employees/${id}`,
-    UPDATE: (id) => `employees/${id}`,
-    DELETE: (id) => `employees/${id}`,
-    STATS: "employees/stats",
+  // States API
+  STATES: {
+    GET_ALL: `${BASE_API_URL}/State/states-all`,
+    CREATE: `${BASE_API_URL}/State/state-create`,
+    UPDATE: `${BASE_API_URL}/State/state-update`,
+    DELETE: (id) => `${BASE_API_URL}/State/state-delete/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/State/state-by-id/${id}`,
   },
 
-  // Dashboard & Analytics
-  DASHBOARD: {
-    STATS: "dashboard/stats",
-    CHARTS: "dashboard/charts",
-    RECENT_ACTIVITY: "dashboard/recent-activity",
+  // Cities API
+  CITIES: {
+    GET_ALL: `${BASE_API_URL}/City/get-all-cities`,
+    CREATE: `${BASE_API_URL}/City/city-create`,
+    UPDATE: `${BASE_API_URL}/City/city-update`,
+    DELETE: (id) => `${BASE_API_URL}/City/city-delete/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/City/get-city-by-id/${id}`,
+  }
+};
+
+// API Helper Functions
+export const apiHelper = {
+  // Common headers
+  getHeaders: () => ({
+    "Content-Type": "application/json",
+    ...(localStorage.getItem("token")
+      ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      : {}),
+  }),
+
+  // Common fetch wrapper with better error handling
+  request: async (url, options = {}) => {
+    const defaultOptions = {
+      headers: apiHelper.getHeaders(),
+      ...options,
+    };
+
+    try {
+      console.log(`API Request: ${options.method || 'GET'} ${url}`);
+      const response = await fetch(url, defaultOptions);
+      console.log(`API Response Status: ${response.status}`);
+      const responseText = await response.text();
+      console.log(`API Response Text:`, responseText);
+      let result;
+      try {
+        result = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error("JSON Parse Error:", parseError);
+        result = { success: false, message: "Invalid JSON response" };
+      }
+
+      // Handle 401 Unauthorized globally
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return { success: false, message: "Unauthorized. Redirecting to login." };
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, message: ${result.message || 'Unknown error'}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("API Request Error:", error);
+      throw error;
+    }
   },
 
-  // Settings
-  SETTINGS: {
-    GENERAL: "settings/general",
-    SECURITY: "settings/security",
-    NOTIFICATIONS: "settings/notifications",
-    INTEGRATIONS: "settings/integrations",
-  },
+  // GET request
+  get: (url) => apiHelper.request(url, { method: "GET" }),
+
+  // POST request
+  post: (url, data) => apiHelper.request(url, {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+
+  // PUT request
+  put: (url, data) => apiHelper.request(url, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  }),
+
+  // DELETE request
+  delete: (url) => apiHelper.request(url, { method: "DELETE" }),
 };
 
-// HTTP Status Codes
-export const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  UNPROCESSABLE_ENTITY: 422,
-  INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503,
-};
-
-// Error Messages
-export const ERROR_MESSAGES = {
-  NETWORK_ERROR: "Network error. Please check your connection and try again.",
-  UNAUTHORIZED: "Authentication required. Please log in.",
-  FORBIDDEN:
-    "Access denied. You do not have permission to perform this action.",
-  NOT_FOUND: "The requested resource was not found.",
-  SERVER_ERROR: "Server error. Please try again later.",
-  VALIDATION_ERROR: "Please check your input and try again.",
-  UNKNOWN_ERROR: "An unexpected error occurred. Please try again.",
-};
-
-// Success Messages
-export const SUCCESS_MESSAGES = {
-  USER_CREATED: "User created successfully!",
-  USER_UPDATED: "User updated successfully!",
-  USER_DELETED: "User deleted successfully!",
-  ROLE_ASSIGNED: "Roles updated successfully!",
-  PERMISSIONS_UPDATED: "Permissions updated successfully!",
-  MODULES_UPDATED: "Modules updated successfully!",
-  STATUS_UPDATED: "Status updated successfully!",
-};
-
-// Default pagination settings
-export const PAGINATION = {
-  DEFAULT_PAGE: 1,
-  DEFAULT_LIMIT: 20,
-  MAX_LIMIT: 100,
-};
-
-// Filter options
-export const FILTER_OPTIONS = {
-  USER_STATUS: [
-    { value: "", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
-    { value: "pending", label: "Pending" },
-    { value: "suspended", label: "Suspended" },
-  ],
-
-  SORT_OPTIONS: [
-    { value: "name", label: "Name" },
-    { value: "email", label: "Email" },
-    { value: "createdAt", label: "Created Date" },
-    { value: "lastLogin", label: "Last Login" },
-    { value: "status", label: "Status" },
-  ],
-
-  SORT_ORDER: [
-    { value: "asc", label: "Ascending" },
-    { value: "desc", label: "Descending" },
-  ],
-};
-
-export default {
-  API_CONFIG,
-  ENDPOINTS,
-  HTTP_STATUS,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-  PAGINATION,
-  FILTER_OPTIONS,
-};
+// Export BASE_API_URL for direct use
+export { BASE_API_URL };

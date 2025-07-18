@@ -5,6 +5,7 @@ import {
   DeleteConfirmModal,
   ViewPermissionModal,
 } from "./PermissionModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./permission.css";
 
 // Skeleton Loading Component
@@ -86,10 +87,13 @@ export const Permission = () => {
   const fetchPermissions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://localhost:7777/gateway/Permissions/permissions-all"
-      );
-      const result = await response.json();
+      setError(null);
+      
+      console.log("Fetching permissions from:", API_ENDPOINTS.PERMISSIONS.GET_ALL);
+      
+      const result = await apiHelper.get(API_ENDPOINTS.PERMISSIONS.GET_ALL);
+      
+      console.log("API Response:", result);
 
       if (result.success) {
         setPermissions(result.data);
@@ -239,17 +243,16 @@ export const Permission = () => {
 
   // Helper: Handle API response for create/update
   const handlePermissionApiResponse = async (
-    response,
+    result,
     permissionData,
     successMsg,
     fetchPermissionsCallback
   ) => {
-    const result = await response.json();
     if (result.success && (!result.statusCode || result.statusCode === 200)) {
       await fetchPermissionsCallback();
       toast.success(successMsg);
       return true;
-    } else if (result.statusCode === 409 || response.status === 409) {
+    } else if (result.statusCode === 409) {
       toast.error(
         `Permission "${permissionData.name}" already exists! Please choose a different name.`
       );
@@ -258,9 +261,7 @@ export const Permission = () => {
         result.message ||
           `Failed to ${successMsg
             .toLowerCase()
-            .replace(" successfully!", "")}: ${response.status} ${
-            response.statusText
-          }`
+            .replace(" successfully!", "")}`
       );
     }
     return false;
@@ -268,65 +269,50 @@ export const Permission = () => {
 
   // Helper: Update permission
   const updatePermission = async (permissionData) => {
-    const requestData = {
-      id: editingPermission.id,
-      name: permissionData.name,
-      action: permissionData.action,
-      description: permissionData.description,
-      status: permissionData.status === "active",
-    };
+    try {
+      const requestData = {
+        id: editingPermission.id,
+        name: permissionData.name,
+        action: permissionData.action,
+        description: permissionData.description,
+        status: permissionData.status === "active",
+      };
 
-    const response = await fetch(
-      "https://localhost:7777/gateway/Permissions/update-permission",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      }
-    );
+      const result = await apiHelper.put(API_ENDPOINTS.PERMISSIONS.UPDATE, requestData);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Response error:", errorText);
-      toast.error(
-        `Failed to update permission: ${response.status} ${response.statusText}`
+      return await handlePermissionApiResponse(
+        result,
+        permissionData,
+        "Permission updated successfully!",
+        fetchPermissions
       );
+    } catch (err) {
+      console.error("Update permission error:", err);
+      toast.error(`Failed to update permission: ${err.message}`);
       return false;
     }
-
-    return await handlePermissionApiResponse(
-      response,
-      permissionData,
-      "Permission updated successfully!",
-      fetchPermissions
-    );
   };
 
   // Helper: Create permission
   const createPermission = async (permissionData) => {
-    const response = await fetch(
-      "https://localhost:7777/gateway/Permissions/create-permission",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: permissionData.name,
-          action: permissionData.action,
-          description: permissionData.description,
-        }),
-      }
-    );
+    try {
+      const result = await apiHelper.post(API_ENDPOINTS.PERMISSIONS.CREATE, {
+        name: permissionData.name,
+        action: permissionData.action,
+        description: permissionData.description,
+      });
 
-    return await handlePermissionApiResponse(
-      response,
-      permissionData,
-      "Permission created successfully!",
-      fetchPermissions
-    );
+      return await handlePermissionApiResponse(
+        result,
+        permissionData,
+        "Permission created successfully!",
+        fetchPermissions
+      );
+    } catch (err) {
+      console.error("Create permission error:", err);
+      toast.error(`Failed to create permission: ${err.message}`);
+      return false;
+    }
   };
 
   const handleSavePermission = async (permissionData) => {
@@ -371,14 +357,8 @@ export const Permission = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/Permissions/delete/${permissionId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.PERMISSIONS.DELETE(permissionId));
 
-      const result = await response.json();
       if (result.success) {
         // Refresh the permissions list
         await fetchPermissions();

@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
+// Helper to get current username from localStorage
+function getCurrentUsername() {
+  try {
+    const userStr = localStorage.getItem("user");
+    console.log("localStorage user item:", userStr); // Yeh log karega user ki raw value
+    if (!userStr) return null;
+    const userObj = JSON.parse(userStr);
+    return userObj?.username || null;
+  } catch (e) {
+    console.error("Error getting current username:", e);
+    return null;
+  }
+}
 import {
   UserFormModal,
   UserViewModal,
   DeleteConfirmModal,
 } from "./UserModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./User.css";
 
 // Skeleton Loading Component
@@ -89,11 +103,16 @@ export const User = () => {
     fetchUsers();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchUsers = async () => {
+  async function fetchUsers() {
     try {
       setLoading(true);
-      const response = await fetch("https://localhost:7777/gateway/Users/get-all-user");
-      const result = await response.json();
+      setError(null);
+      
+      console.log("Fetching users from:", API_ENDPOINTS.USERS.GET_ALL);
+      
+      const result = await apiHelper.get(API_ENDPOINTS.USERS.GET_ALL);
+      
+      console.log("API Response:", result);
 
       if (result.success) {
         setUsers(result.data);
@@ -239,7 +258,7 @@ export const User = () => {
       setOperationLoading(true);
       
       if (editingUser) {
-        // Use the payload format that works based on previous testing
+        // Only set ModifiedBy, never update CreatedBy on edit
         const updatePayload = {
           id: editingUser.id, // Use 'id' instead of 'userId' as this format works
           email: userData.email?.trim() || "",
@@ -254,6 +273,7 @@ export const User = () => {
           roleIds: Array.isArray(userData.roleIds) ? userData.roleIds : [],
           permissionIds: Array.isArray(userData.permissionIds) ? userData.permissionIds : [],
           moduleIds: Array.isArray(userData.moduleIds) ? userData.moduleIds : [],
+          ModifiedBy: getCurrentUsername(),
         };
 
         // Validate required fields
@@ -264,78 +284,20 @@ export const User = () => {
 
         console.log("Update payload:", updatePayload);
 
-        // Update existing user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-update", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatePayload),
-        });
-
-        console.log("Response status:", response.status);
+        // Update existing user using apiHelper
+        const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE, updatePayload);
         
-        let result;
-        try {
-          result = await response.json();
-          console.log("Update response:", result);
-        } catch (jsonError) {
-          console.error("Failed to parse JSON response:", jsonError);
-          toast.error("Server response error. Please try again.");
-          return;
-        }
+        console.log("Update response:", result);
         
-        // Check if the response is successful (either result.success is true OR status code is 200/201)
-        if (result.success || response.status === 200 || response.status === 201) {
+        // Check if the response is successful
+        if (result.success) {
           await fetchUsers();
           toast.success("User updated successfully!");
           setIsUserFormOpen(false);
           setEditingUser(null);
         } else {
-          console.error("Update failed - Status:", response.status, "Result:", result);
-          
-          // If we get a 400 error, let's try a different approach
-          if (response.status === 400) {
-            // Try with a simplified payload (sometimes the backend expects different field formats)
-            const simplifiedPayload = {
-              id: editingUser.id,
-              email: userData.email,
-              userName: userData.userName,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              country: userData.country,
-              phoneNumber: userData.phoneNumber,
-              gender: parseInt(userData.gender),
-              status: userData.status === "Active",
-              roleIds: userData.roleIds || [],
-              permissionIds: userData.permissionIds || [],
-              moduleIds: userData.moduleIds || []
-            };
-            
-            console.log("Trying simplified payload:", simplifiedPayload);
-            
-            const retryResponse = await fetch("https://localhost:7777/gateway/Users/user-update", {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(simplifiedPayload),
-            });
-            
-            const retryResult = await retryResponse.json();
-            console.log("Retry response status:", retryResponse.status, "Result:", retryResult);
-            
-            if (retryResult.success || retryResponse.status === 200 || retryResponse.status === 201) {
-              await fetchUsers();
-              toast.success("User updated successfully!");
-              setIsUserFormOpen(false);
-              setEditingUser(null);
-            } else {
-              toast.error(retryResult.message || result.message || "Failed to update user");
-            }
-          } else {
-            toast.error(result.message || "Failed to update user");
-          }
+          console.error("Update failed - Result:", result);
+          toast.error(result.message || "Failed to update user");
         }
       } else {
         // Prepare the create payload
@@ -347,28 +309,22 @@ export const User = () => {
           lastName: userData.lastName,
           country: userData.country,
           phoneNumber: userData.phoneNumber,
-          gender: userData.gender,
+          gender: userData.gender === "Female" ? 1 : 0, 
           status: userData.status === "Active",
           roleIds: userData.roleIds || [],
           permissionIds: userData.permissionIds || [],
           moduleIds: userData.moduleIds || [],
+          password: userData.password,
+          CreatedBy: getCurrentUsername(),
         };
 
         console.log("Create payload:", createPayload);
 
-        // Create new user
-        const response = await fetch("https://localhost:7777/gateway/Users/user-create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(createPayload),
-        });
-
-        const result = await response.json();
+        // Create new user using apiHelper
+        const result = await apiHelper.post(API_ENDPOINTS.USERS.CREATE, createPayload);
         
-        // Check if the response is successful (either result.success is true OR status code is 200/201)
-        if (result.success || response.status === 200 || response.status === 201) {
+        // Check if the response is successful
+        if (result.success) {
           await fetchUsers();
           toast.success("User created successfully!");
           setIsUserFormOpen(false);
@@ -379,7 +335,7 @@ export const User = () => {
       }
     } catch (err) {
       console.error("Error saving user:", err);
-      toast.error("Error saving user. Please try again.");
+      toast.error(`Error saving user: ${err.message}`);
     } finally {
       setOperationLoading(false);
     }
@@ -389,14 +345,8 @@ export const User = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/Users/user-delete/${userId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.USERS.DELETE(userId));
 
-      const result = await response.json();
       if (result.success) {
         await fetchUsers();
         toast.success("User deleted successfully!");

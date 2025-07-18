@@ -1,6 +1,40 @@
 import "./Header.css"; // Import the CSS for the header
 
+// Helper to get user initials from localStorage
+function getUserInitials() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      const firstName = user.firstName || "";
+      const lastName = user.lastName || "";
+      if (firstName || lastName) {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+      }
+    }
+  } catch {
+    // ignore error
+  }
+  return "U";
+}
+
+function getUserFullName() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    }
+  } catch {
+    // ignore error
+  }
+  return "User";
+}
+
 export const Header = () => {
+  const navigateToLogin = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
   const handleSearch = (e) => {
     if (e.key === "Enter") {
       // Add your search logic here
@@ -14,6 +48,8 @@ export const Header = () => {
     }
   };
 
+  const initials = getUserInitials();
+  const fullName = getUserFullName();
   return (
     <header className="header">
       <div className="header-left">
@@ -53,7 +89,8 @@ export const Header = () => {
         </div>
 
         <div className="user-profile">
-          <div className="user-avatar">JS</div>
+          <div className="user-avatar" title={fullName}>{initials}</div>
+          <button className="logout-btn" onClick={navigateToLogin} title="Logout">Logout</button>
         </div>
       </div>
     </header>

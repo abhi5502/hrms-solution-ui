@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { RoleFormModal, DeleteConfirmModal, ViewRoleModal } from "./RoleModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./role.css";
 
 // Skeleton Loading Component
@@ -54,10 +55,7 @@ export const Role = () => {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://localhost:7777/gateway/Roles/get-all-role"
-      );
-      const result = await response.json();
+      const result = await apiHelper.get(API_ENDPOINTS.ROLES.GET_ALL);
 
       if (result.success) {
         setRoles(result.data);
@@ -100,26 +98,15 @@ export const Role = () => {
 
       if (editingRole) {
         // Update existing role
-        const response = await fetch(
-          "https://localhost:7777/gateway/Roles/update-role",
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: editingRole.id,
-              name: roleData.name,
-              description: `${roleData.name} role`,
-              status: roleData.status === "Active",
-            }),
-          }
-        );
+        const result = await apiHelper.put(API_ENDPOINTS.ROLES.UPDATE, {
+          id: editingRole.id,
+          name: roleData.name,
+          description: `${roleData.name} role`,
+          status: roleData.status === "Active",
+        });
 
-        const result = await response.json();
         if (result.success) {
           console.log("Role updated successfully:", result.data);
-          // Refresh the roles list
           await fetchRoles();
           toast.success("Role updated successfully!");
         } else {
@@ -127,24 +114,13 @@ export const Role = () => {
         }
       } else {
         // Add new role
-        const response = await fetch(
-          "https://localhost:7777/gateway/Roles/create-role",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: roleData.name,
-              description: `${roleData.name} role`,
-            }),
-          }
-        );
+        const result = await apiHelper.post(API_ENDPOINTS.ROLES.CREATE, {
+          name: roleData.name,
+          description: `${roleData.name} role`,
+        });
 
-        const result = await response.json();
         if (result.success) {
           console.log("Role created successfully:", result.data);
-          // Refresh the roles list
           await fetchRoles();
           toast.success("Role created successfully!");
         } else {
@@ -166,16 +142,9 @@ export const Role = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/Roles/delete-role/${roleId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.ROLES.DELETE(roleId));
 
-      const result = await response.json();
       if (result.success) {
-        // Refresh the roles list
         await fetchRoles();
         toast.success("Role deleted successfully!");
       } else {

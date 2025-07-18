@@ -5,6 +5,7 @@ import {
   DeleteConfirmModal,
   ViewModuleModal,
 } from "./ModuleModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./module.css";
 
 // Skeleton Loading Component
@@ -86,18 +87,23 @@ export const Module = () => {
   const fetchModules = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://localhost:7777/gateway/Module/getall-module"
-      );
-      const result = await response.json();
+      setError(null);
+      
+      console.log("Fetching modules from:", API_ENDPOINTS.MODULES.GET_ALL);
+      
+      const result = await apiHelper.get(API_ENDPOINTS.MODULES.GET_ALL);
+      
+      console.log("API Response:", result);
 
       if (result.success) {
         setModules(result.data);
         setTotalPages(Math.ceil(result.data.length / itemsPerPage));
       } else {
+        setError("Failed to fetch modules");
         toast.error("Failed to fetch modules");
       }
     } catch (err) {
+      setError("Error connecting to server");
       toast.error("Error connecting to server");
       console.error("Error fetching modules:", err);
     } finally {
@@ -239,17 +245,16 @@ export const Module = () => {
 
   // Helper: Handle API response for create/update
   const handleModuleApiResponse = async (
-    response,
+    result,
     moduleData,
     successMsg,
     fetchModulesCallback
   ) => {
-    const result = await response.json();
     if (result.success && (!result.statusCode || result.statusCode === 200)) {
       await fetchModulesCallback();
       toast.success(successMsg);
       return true;
-    } else if (result.statusCode === 409 || response.status === 409) {
+    } else if (result.statusCode === 409) {
       toast.error(
         `Module "${moduleData.name}" already exists! Please choose a different name.`
       );
@@ -258,9 +263,7 @@ export const Module = () => {
         result.message ||
           `Failed to ${successMsg
             .toLowerCase()
-            .replace(" successfully!", "")}: ${response.status} ${
-            response.statusText
-          }`
+            .replace(" successfully!", "")}`
       );
     }
     return false;
@@ -268,63 +271,48 @@ export const Module = () => {
 
   // Helper: Update module
   const updateModule = async (moduleData) => {
-    const requestData = {
-      id: editingModule.id,
-      name: moduleData.name,
-      description: moduleData.description,
-      status: moduleData.status === "active",
-    };
+    try {
+      const requestData = {
+        id: editingModule.id,
+        name: moduleData.name,
+        description: moduleData.description,
+        status: moduleData.status === "active",
+      };
 
-    const response = await fetch(
-      "https://localhost:7777/gateway/Module/module-update",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      }
-    );
+      const result = await apiHelper.put(API_ENDPOINTS.MODULES.UPDATE, requestData);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Response error:", errorText);
-      toast.error(
-        `Failed to update module: ${response.status} ${response.statusText}`
+      return await handleModuleApiResponse(
+        result,
+        moduleData,
+        "Module updated successfully!",
+        fetchModules
       );
+    } catch (err) {
+      console.error("Update module error:", err);
+      toast.error(`Failed to update module: ${err.message}`);
       return false;
     }
-
-    return await handleModuleApiResponse(
-      response,
-      moduleData,
-      "Module updated successfully!",
-      fetchModules
-    );
   };
 
   // Helper: Create module
   const createModule = async (moduleData) => {
-    const response = await fetch(
-      "https://localhost:7777/gateway/Module/create-module",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: moduleData.name,
-          description: moduleData.description,
-        }),
-      }
-    );
+    try {
+      const result = await apiHelper.post(API_ENDPOINTS.MODULES.CREATE, {
+        name: moduleData.name,
+        description: moduleData.description,
+      });
 
-    return await handleModuleApiResponse(
-      response,
-      moduleData,
-      "Module created successfully!",
-      fetchModules
-    );
+      return await handleModuleApiResponse(
+        result,
+        moduleData,
+        "Module created successfully!",
+        fetchModules
+      );
+    } catch (err) {
+      console.error("Create module error:", err);
+      toast.error(`Failed to create module: ${err.message}`);
+      return false;
+    }
   };
 
   const handleSaveModule = async (moduleData) => {
@@ -369,14 +357,8 @@ export const Module = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/Module/delete-module/${moduleId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.MODULES.DELETE(moduleId));
 
-      const result = await response.json();
       if (result.success) {
         // Refresh the modules list
         await fetchModules();

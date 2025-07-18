@@ -1,22 +1,29 @@
 /* =================================
-   BROWSER COMPATIBILITY LAYER - DISABLED FOR MODAL BLUR
+   BROWSER COMPATIBILITY LAYER
    ================================= */
 
-/* COMPLETELY DISABLE backdrop-filter here to avoid conflicts */
+/* Cross-browser backdrop-filter support */
 @supports (backdrop-filter: blur(1px)) {
-  /* .modal-overlay styles are now handled in individual modal CSS files */
+  .modal-overlay {
+    backdrop-filter: blur(8px);
+  }
   
-  .loading-overlay {
-    /* backdrop-filter: blur(4px); */
+  .loading-overlay,
+  .table-loading-overlay::before {
+    backdrop-filter: blur(4px);
   }
 }
 
 @supports (-webkit-backdrop-filter: blur(1px)) {
-  /* .modal-overlay styles are now handled in individual modal CSS files */
+  .modal-overlay {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
   
-  .loading-overlay {
-    /* backdrop-filter: blur(4px); */
-    /* -webkit-backdrop-filter: blur(4px); */
+  .loading-overlay,
+  .table-loading-overlay::before {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 }
 
@@ -25,8 +32,18 @@
 .btn-view,
 .btn-edit,
 .btn-delete,
+.btn-add,
+.btn-save,
+.btn-cancel,
+.btn-close,
+.btn-assign-all,
+.btn-remove-all,
 .pagination-btn,
-.pagination-number {
+.pagination-number,
+.tab-btn,
+.close-btn,
+.clear-search-btn,
+.btn-clear-search {
   /* Standard */
   user-select: none;
   /* WebKit */
@@ -39,50 +56,81 @@
 
 /* Cross-browser scrollbar styling */
 @supports (scrollbar-width: thin) {
+  .list-container,
   .users-list,
   .roles-list,
   .permissions-list,
   .modules-list,
-  .modal-body {
+  .cities-list,
+  .modal-body,
+  .table-wrapper,
+  .selection-container,
+  .checkbox-list {
     scrollbar-width: thin;
     scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
   }
 }
 
 /* WebKit scrollbar fallback */
+.list-container::-webkit-scrollbar,
 .users-list::-webkit-scrollbar,
 .roles-list::-webkit-scrollbar,
 .permissions-list::-webkit-scrollbar,
 .modules-list::-webkit-scrollbar,
-.modal-body::-webkit-scrollbar {
+.cities-list::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar,
+.table-wrapper::-webkit-scrollbar,
+.selection-container::-webkit-scrollbar,
+.checkbox-list::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
+.list-container::-webkit-scrollbar-track,
 .users-list::-webkit-scrollbar-track,
 .roles-list::-webkit-scrollbar-track,
 .permissions-list::-webkit-scrollbar-track,
 .modules-list::-webkit-scrollbar-track,
-.modal-body::-webkit-scrollbar-track {
+.cities-list::-webkit-scrollbar-track,
+.modal-body::-webkit-scrollbar-track,
+.table-wrapper::-webkit-scrollbar-track,
+.selection-container::-webkit-scrollbar-track,
+.checkbox-list::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
+  margin: 4px 0;
 }
 
+.list-container::-webkit-scrollbar-thumb,
 .users-list::-webkit-scrollbar-thumb,
 .roles-list::-webkit-scrollbar-thumb,
 .permissions-list::-webkit-scrollbar-thumb,
 .modules-list::-webkit-scrollbar-thumb,
-.modal-body::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.8);
+.cities-list::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb,
+.table-wrapper::-webkit-scrollbar-thumb,
+.selection-container::-webkit-scrollbar-thumb,
+.checkbox-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.8) 0%, 
+    rgba(168, 85, 247, 0.8) 100%);
   border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
+.list-container::-webkit-scrollbar-thumb:hover,
 .users-list::-webkit-scrollbar-thumb:hover,
 .roles-list::-webkit-scrollbar-thumb:hover,
 .permissions-list::-webkit-scrollbar-thumb:hover,
 .modules-list::-webkit-scrollbar-thumb:hover,
-.modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 1);
+.cities-list::-webkit-scrollbar-thumb:hover,
+.modal-body::-webkit-scrollbar-thumb:hover,
+.table-wrapper::-webkit-scrollbar-thumb:hover,
+.selection-container::-webkit-scrollbar-thumb:hover,
+.checkbox-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 1) 0%, 
+    rgba(168, 85, 247, 1) 100%);
 }
 
 /* Cross-browser background-clip support */
@@ -97,10 +145,23 @@
   color: #f56565;
 }
 
+/* Cross-browser text-stroke support */
+.page-header h1 {
+  /* WebKit */
+  -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.1);
+  /* Fallback */
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
 /* Firefox min-height auto fix */
 @-moz-document url-prefix() {
   .modal-content {
     min-height: 200px;
+  }
+  
+  .form-group select {
+    text-indent: 0.01px;
+    text-overflow: '';
   }
 }
 
@@ -108,9 +169,19 @@
 @supports (-webkit-appearance: none) {
   .search-input,
   .form-group input,
-  .form-group select {
+  .form-group select,
+  .form-group textarea {
     -webkit-appearance: none;
     appearance: none;
+  }
+  
+  /* Fix for Safari select styling */
+  .form-group select {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23ffffff' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 30px;
   }
 }
 
@@ -132,12 +203,41 @@
   }
 }
 
+/* Cross-browser flexbox fallbacks */
+@supports not (display: flex) {
+  .page-header,
+  .list-header,
+  .modal-header,
+  .modal-footer,
+  .pagination-container,
+  .pagination,
+  .form-row {
+    display: block;
+    overflow: hidden;
+  }
+  
+  .page-header h1,
+  .btn-add,
+  .search-container,
+  .pagination-info,
+  .pagination-numbers {
+    float: left;
+    margin-right: 10px;
+  }
+  
+  .btn-add {
+    float: right;
+  }
+}
+
 /* Mobile Safari fixes */
 @supports (-webkit-touch-callout: none) {
+  .table-container,
   .user-container,
   .role-container,
   .permission-container,
-  .module-container {
+  .module-container,
+  .city-container {
     -webkit-overflow-scrolling: touch;
   }
   
@@ -146,8 +246,24 @@
   .btn-update,
   .btn-delete,
   .btn-cancel,
-  .btn-close {
+  .btn-close,
+  .btn-view,
+  .btn-edit,
+  .btn-assign-all,
+  .btn-remove-all,
+  .pagination-btn,
+  .pagination-number,
+  .tab-btn {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+  }
+  
+  /* Fix for iOS Safari input zoom */
+  .search-input,
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px;
   }
 }
 
@@ -155,6 +271,120 @@
 @supports (display: -webkit-box) {
   .table-wrapper {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for Chrome autofill styles */
+  .form-group input:-webkit-autofill,
+  .form-group input:-webkit-autofill:hover,
+  .form-group input:-webkit-autofill:focus,
+  .form-group input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.08) inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+/* Cross-browser transform support */
+@supports not (transform: translateY(-1px)) {
+  .btn-add:hover,
+  .btn-save:hover,
+  .btn-cancel:hover,
+  .btn-delete:hover,
+  .btn-close:hover,
+  .pagination-btn:hover,
+  .detail-row:hover {
+    /* Fallback for browsers without transform */
+    margin-top: -1px;
+  }
+}
+
+/* Cross-browser box-shadow support */
+@supports not (box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)) {
+  .modal-content,
+  .list-container,
+  .data-table,
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border: 2px solid #667eea;
+  }
+}
+
+/* Cross-browser gradient support */
+@supports not (background: linear-gradient(135deg, #667eea, #764ba2)) {
+  .btn-add,
+  .btn-save,
+  .btn-close,
+  .pagination-btn,
+  .status.active {
+    background: #667eea;
+  }
+  
+  .btn-delete,
+  .btn-remove-all,
+  .status.inactive {
+    background: #e53e3e;
+  }
+  
+  .btn-assign-all {
+    background: #f6e05e;
+  }
+  
+  .btn-cancel {
+    background: #718096;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .modal-content {
+    border: 2px solid white;
+  }
+  
+  .data-table th,
+  .data-table td {
+    border: 1px solid white;
+  }
+  
+  .status {
+    border: 2px solid;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    border: 1px solid white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .modal-overlay {
+    animation: none;
+  }
+  
+  .btn-add:hover,
+  .btn-save:hover,
+  .btn-cancel:hover,
+  .btn-delete:hover,
+  .btn-close:hover,
+  .pagination-btn:hover,
+  .detail-row:hover {
+    transform: none;
   }
 }
 
@@ -167,22 +397,33 @@
   .btn-add,
   .btn-edit,
   .btn-delete,
-  .btn-view {
+  .btn-view,
+  .btn-assign-all,
+  .btn-remove-all,
+  .search-container,
+  .pagination-container {
     display: none !important;
   }
   
-  .main-content {
+  .main-content,
+  .table-container {
     margin: 0 !important;
     padding: 0 !important;
+    background: white !important;
   }
   
+  .data-table,
   .users-table,
   .roles-table,
   .permissions-table,
-  .modules-table {
+  .modules-table,
+  .cities-table {
     border: 1px solid #000 !important;
+    background: white !important;
   }
   
+  .data-table th,
+  .data-table td,
   .users-table th,
   .users-table td,
   .roles-table th,
@@ -190,9 +431,133 @@
   .permissions-table th,
   .permissions-table td,
   .modules-table th,
-  .modules-table td {
+  .modules-table td,
+  .cities-table th,
+  .cities-table td {
     border: 1px solid #000 !important;
     color: #000 !important;
     background: #fff !important;
+  }
+  
+  .page-header h1,
+  .list-container h5 {
+    color: #000 !important;
+  }
+  
+  .status {
+    border: 1px solid #000 !important;
+  }
+  
+  .status.active {
+    background: #d4edda !important;
+    color: #155724 !important;
+  }
+  
+  .status.inactive {
+    background: #f8d7da !important;
+    color: #721c24 !important;
+  }
+}
+
+/* Screen reader and accessibility fixes */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .modal-overlay {
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .modal-content {
+    animation: slideIn 0.3s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  /* This ensures our dark theme is properly applied */
+  .table-container {
+    background-color: #281e24 !important;
+    color: white !important;
+  }
+  
+  .modal-content {
+    background: linear-gradient(145deg, #2d3748, #1a202c) !important;
+    color: white !important;
+  }
+}
+
+/* RTL (Right-to-Left) language support */
+[dir="rtl"] .search-container {
+  text-align: right;
+}
+
+[dir="rtl"] .clear-search-btn {
+  left: 8px;
+  right: auto;
+}
+
+[dir="rtl"] .sort-indicator {
+  margin-left: 0;
+  margin-right: 5px;
+}
+
+[dir="rtl"] .detail-row::before {
+  right: 0;
+  left: auto;
+}
+
+/* Force hardware acceleration for smooth animations */
+.modal-overlay,
+.modal-content,
+.btn-add,
+.btn-save,
+.btn-cancel,
+.btn-delete,
+.btn-close,
+.pagination-btn,
+.tab-btn {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure proper stacking contexts */
+.modal-overlay {
+  z-index: 1000;
+  position: fixed;
+  isolation: isolate;
+}
+
+.table-loading-overlay {
+  z-index: 10;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Fix for older Android browsers */
+@supports not (position: sticky) {
+  .data-table thead {
+    position: fixed;
+    top: 0;
+    z-index: 100;
   }
 }

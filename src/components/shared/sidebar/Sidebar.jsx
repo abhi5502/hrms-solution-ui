@@ -95,6 +95,15 @@ export const Sidebar = () => {
 
             <li>
               <Link
+                to="/cities"
+                className={location.pathname === "/cities" ? "active" : ""}
+              >
+                🏙️ Cities
+              </Link>
+            </li>
+
+            <li>
+              <Link
                 to="/departments"
                 className={location.pathname === "/departments" ? "active" : ""}
               >

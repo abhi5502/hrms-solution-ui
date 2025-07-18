@@ -5,6 +5,7 @@ import {
   DeleteConfirmModal,
   ViewCountryModal,
 } from "./CountryModals";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./country.css";
 
 // Skeleton Loading Component
@@ -64,7 +65,7 @@ export const Country = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // Sorting states
-  const [sortField, setSortField] = useState("name");
+  const [sortField, setSortField] = useState("countryName");
   const [sortDirection, setSortDirection] = useState("asc");
 
   // Search state
@@ -81,38 +82,43 @@ export const Country = () => {
     fetchCountries();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchCountries = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        "https://localhost:7777/gateway/Country/countries-all"
-      );
-      const result = await response.json();
-      console.log("API Response:", result); // Debug log
+ const fetchCountries = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    console.log("Fetching countries from:", API_ENDPOINTS.COUNTRIES.GET_ALL);
+    
+    const result = await apiHelper.get(API_ENDPOINTS.COUNTRIES.GET_ALL);
+    
+    console.log("API Response:", result);
 
-      if (result.success) {
-        // Map API response fields to component expected fields
-        const mappedCountries = result.data.map(country => ({
-          id: country.id,
-          name: country.countryName,
-          status: country.status === 'True' ? 'Active' : 'Inactive',
-          createdAt: country.createdDate,
-          updatedAt: country.modifiedDate
-        }));
-        
-        console.log("Mapped Countries:", mappedCountries); // Debug log
-        setCountries(mappedCountries);
-        setTotalPages(Math.ceil(mappedCountries.length / itemsPerPage));
-      } else {
-        setError("Failed to fetch countries");
-      }
-    } catch (err) {
-      setError("Error connecting to server");
-      console.error("Error fetching countries:", err);
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      // Now API already returns Active/Inactive status - no conversion needed
+      const mappedCountries = result.data.map(country => ({
+        id: country.id,
+        name: country.countryName, // Map countryName to name
+        status: country.status,    // Direct mapping - already Active/Inactive
+        createdDate: country.createdDate,
+        modifiedDate: country.modifiedDate
+      }));
+      
+      console.log("Mapped Countries:", mappedCountries);
+      
+      setCountries(mappedCountries);
+      setTotalPages(Math.ceil(mappedCountries.length / itemsPerPage));
+    } else {
+      setError("Failed to fetch countries");
+      toast.error("Failed to fetch countries");
     }
-  };
+  } catch (err) {
+    setError("Error connecting to server");
+    toast.error("Error connecting to server");
+    console.error("Error fetching countries:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Sorting function
   const handleSort = (field) => {
@@ -248,110 +254,121 @@ export const Country = () => {
 
   // Helper: Handle API response for create/update
   const handleCountryApiResponse = async (
-    response,
+    result,
     countryData,
     successMsg,
     fetchCountriesCallback
   ) => {
-    console.log("API Response status:", response.status);
-    console.log("API Response ok:", response.ok);
-    console.log("API Response headers:", [...response.headers.entries()]);
-    
-    if (!response.ok) {
-      let errorText;
-      try {
-        errorText = await response.text();
-      } catch (e) {
-        console.error("Error reading error response:", e);
-        errorText = "Could not read error response";
-      }
-      console.error("HTTP Error:", response.status, response.statusText, errorText);
-      toast.error(`HTTP Error: ${response.status} - ${response.statusText}`);
-      return;
-    }
-    
-    const result = await response.json();
-    console.log("API Response result:", result);
-    
     if (result.success && (!result.statusCode || result.statusCode === 200)) {
       await fetchCountriesCallback();
       toast.success(successMsg);
-      setIsCountryFormOpen(false);
-      setEditingCountry(null);
+      return true;
+    } else if (result.statusCode === 409) {
+      toast.error(
+        `Country "${countryData.name}" already exists! Please choose a different name.`
+      );
     } else {
-      const errorMessage = result.message || `Failed to save country`;
-      console.error("API Error:", errorMessage);
-      toast.error(errorMessage);
+      toast.error(
+        result.message ||
+          `Failed to ${successMsg
+            .toLowerCase()
+            .replace(" successfully!", "")}`
+      );
     }
+    return false;
   };
+
+
+// Helper: Update country
+const updateCountry = async (countryData) => {
+  try {
+    console.log("Attempting to update country with data:", countryData);
+    console.log("Editing country:", editingCountry);
+
+    const requestData = {
+      id: editingCountry.id,
+      countryName: countryData.name,
+      status: countryData.status.toLowerCase() === "active"
+    };
+
+    console.log("Update request data:", requestData);
+    
+    const result = await apiHelper.put(API_ENDPOINTS.COUNTRIES.UPDATE, requestData);
+
+    return await handleCountryApiResponse(
+      result,
+      countryData,
+      "Country updated successfully!",
+      fetchCountries
+    );
+  } catch (err) {
+    console.error("Update country error:", err);
+    toast.error(`Failed to update country: ${err.message}`);
+    return false;
+  }
+};
+
+
+
+
+
+  // Helper: Create country
+ const createCountry = async (countryData) => {
+  try {
+    console.log("Creating country with data:", countryData);
+    
+    const requestData = {
+      countryName: countryData.name,
+    };
+
+    console.log("Create request data:", requestData);
+
+    const result = await apiHelper.post(API_ENDPOINTS.COUNTRIES.CREATE, requestData);
+
+    return await handleCountryApiResponse(
+      result,
+      countryData,
+      "Country created successfully!",
+      fetchCountries
+    );
+  } catch (err) {
+    console.error("Create country error:", err);
+    toast.error(`Failed to create country: ${err.message}`);
+    return false;
+  }
+};
 
   const handleSaveCountry = async (countryData) => {
     try {
       setOperationLoading(true);
-
-      // Check for duplicate country name
-      if (isDuplicateCountry(countryData.name, editingCountry?.id)) {
-        toast.error("Country name already exists");
-        setOperationLoading(false);
-        return;
-      }
-
-      // Map form data to API expected format
-      const apiData = {
-        countryName: countryData.name,
-        status: countryData.status === 'active' ? 'True' : 'False'
-      };
+      let operationSuccessful = false;
 
       if (editingCountry) {
-        // Update existing country - copied from Role component
-        const response = await fetch(
-          "https://localhost:7777/gateway/Country/country-update",
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: editingCountry.id,
-              countryName: countryData.name,
-              status: countryData.status === "active", // boolean like Role
-            }),
-          }
-        );
-
-        const result = await response.json();
-        if (result.success) {
-          console.log("Country updated successfully:", result.data);
-          // Refresh the countries list
-          await fetchCountries();
-          toast.success("Country updated successfully!");
-          setIsCountryFormOpen(false);
-          setEditingCountry(null);
-        } else {
-          toast.error(result.message || "Failed to update country");
+        // Update existing country - Check for duplicates (excluding current country)
+        if (isDuplicateCountry(countryData.name, editingCountry.id)) {
+          toast.error(
+            `Country "${countryData.name}" already exists! Please choose a different name.`
+          );
+          return;
         }
+        operationSuccessful = await updateCountry(countryData);
       } else {
-        // Create new country
-        const response = await fetch(
-          "https://localhost:7777/gateway/Country/country-create",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(apiData),
-          }
-        );
+        // Add new country - Check for duplicates first
+        if (isDuplicateCountry(countryData.name)) {
+          toast.error(
+            `Country "${countryData.name}" already exists! Please choose a different name.`
+          );
+          return;
+        }
+        operationSuccessful = await createCountry(countryData);
+      }
 
-        await handleCountryApiResponse(
-          response,
-          countryData,
-          "Country created successfully!",
-          fetchCountries
-        );
+      // Only close modal and clear editing state if the operation was successful
+      if (operationSuccessful) {
+        setIsCountryFormOpen(false);
+        setEditingCountry(null);
       }
     } catch (err) {
-      console.error("Error in handleSaveCountry:", err);
       toast.error("Error saving country. Please try again.");
       console.error("Error saving country:", err);
     } finally {
@@ -363,15 +380,10 @@ export const Country = () => {
     try {
       setOperationLoading(true);
 
-      const response = await fetch(
-        `https://localhost:7777/gateway/Country/country-delete/${countryId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const result = await apiHelper.delete(API_ENDPOINTS.COUNTRIES.DELETE(countryId));
 
-      const result = await response.json();
       if (result.success) {
+        // Refresh the countries list
         await fetchCountries();
         toast.success("Country deleted successfully!");
       } else {
@@ -475,7 +487,7 @@ export const Country = () => {
                   </td>
                   <td className="country-name">{country.name}</td>
                   <td>
-                    <span className={`status ${country.status?.toLowerCase()}`}>
+                    <span className={`status ${country.status.toLowerCase()}`}>
                       {country.status}
                     </span>
                   </td>

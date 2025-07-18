@@ -1,3 +1,18 @@
+/* Logout button styles */
+.logout-btn {
+  margin-left: 12px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: #5f27cd;
+}
 .header {
   background-color: #2d2d44;
   color: #fff;

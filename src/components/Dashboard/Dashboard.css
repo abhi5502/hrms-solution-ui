@@ -33,11 +33,11 @@
 }
 
 .card {
-  background: #fff;
+  background: linear-gradient(145deg, rgb(65, 61, 61), rgb(50, 46, 46));
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .card-header {
@@ -48,10 +48,13 @@
 }
 
 .card-header h3 {
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
-  margin: 0;
+display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgb(193 201 215);
+    gap: 15px
 }
 
 .card-icon {

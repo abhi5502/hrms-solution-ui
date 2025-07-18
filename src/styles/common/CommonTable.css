@@ -1,0 +1,715 @@
+/* Common Table Styles - Reusable across all components */
+.table-container {
+  padding: 20px;
+  background-color: #281e24 !important;
+  min-height: 100vh;
+  color: white !important;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.table-container h1 {
+  color: white !important;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #444;
+  gap: 15px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: white;
+  font-size: 28px;
+  flex: 1;
+}
+
+/* Add Button */
+.btn-add {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-add:hover {
+  background-color: #5855f0;
+}
+
+.btn-add:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* List Container */
+.list-container {
+  margin-top: 25px;
+  background: linear-gradient(145deg, rgb(65, 61, 61), rgb(50, 46, 46));
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.8) rgba(0, 0, 0, 0.2);
+}
+
+.list-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.05) 0%, 
+    rgba(168, 85, 247, 0.05) 100%);
+  border-radius: 15px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.list-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* List Header */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(193 201 215);
+  gap: 15px;
+}
+
+.list-container h5 {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* Search Container */
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 300px;
+  max-width: 100%;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 35px;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  background-color: #333;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.clear-search-btn:hover {
+  color: #ff6b6b;
+}
+
+.search-results-info {
+  color: #ccc;
+  font-size: 13px;
+  font-style: italic;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+/* Table Styles */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 -5px;
+  border-radius: 8px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  min-width: 600px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+  color: white;
+}
+
+.data-table th {
+  background-color: #2a2a2a;
+  font-weight: bold;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Serial Number Column */
+.serial-no {
+  width: 60px;
+  text-align: center;
+  font-weight: bold;
+  color: #888;
+}
+
+/* Status Styles */
+.status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: none !important;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Prevent hover effects on status */
+.status:hover,
+.data-table tr:hover .status,
+.data-table td:hover .status,
+.data-table tbody tr:hover .status {
+  background-color: inherit !important;
+  color: inherit !important;
+  border: inherit !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.status.active:hover,
+.data-table tr:hover .status.active,
+.data-table td:hover .status.active,
+.data-table tbody tr:hover .status.active {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb !important;
+}
+
+.status.inactive:hover,
+.data-table tr:hover .status.inactive,
+.data-table td:hover .status.inactive,
+.data-table tbody tr:hover .status.inactive {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+}
+
+/* Action Buttons */
+.data-table td:last-child {
+  text-align: center;
+  white-space: nowrap;
+  padding: 15px;
+  vertical-align: middle;
+  min-width: 100px;
+}
+
+.data-table th:last-child {
+  text-align: center;
+  min-width: 100px;
+}
+
+.btn-view,
+.btn-edit,
+.btn-delete {
+  background: none !important;
+  border: none !important;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 2px; 
+  transition: none !important;
+  color: inherit;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  min-width: 24px;
+  height: 24px;
+}
+
+.btn-view {
+  margin-right: 4px !important;
+}
+
+.btn-view:hover,
+.btn-edit:hover,
+.btn-delete:hover {
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-view:disabled,
+.btn-edit:disabled,
+.btn-delete:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Sorting Styles */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.sortable:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sort-indicator {
+  font-size: 12px;
+  margin-left: 5px;
+  color: #888;
+}
+
+.sorted-asc .sort-indicator,
+.sorted-desc .sort-indicator {
+  color: #667eea;
+  font-weight: bold;
+}
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px 0;
+  border-top: 1px solid #333;
+}
+
+.pagination-info {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a67d8, #667eea);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pagination-btn:disabled {
+  background: #444;
+  color: #888;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination-number {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid #444;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 40px;
+}
+
+.pagination-number:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #667eea;
+}
+
+.pagination-number.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #ccc;
+  font-style: italic;
+}
+
+.btn-clear-search {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-clear-search:hover {
+  background-color: #5a67d8;
+}
+
+/* Loading States */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ccc;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 4px;
+}
+
+/* Loading Overlay */
+.table-loading-overlay {
+  position: relative;
+}
+
+.table-loading-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(40, 30, 36, 0.7);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.table-loading-overlay::after {
+  content: 'Processing...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 11;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+/* Scrollbar Styling */
+.list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.list-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.8) 0%, 
+    rgba(168, 85, 247, 0.8) 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.list-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 1) 0%, 
+    rgba(168, 85, 247, 1) 100%);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .table-container {
+    padding: 15px !important;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .list-container {
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    max-height: 500px;
+  }
+  
+  .list-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .list-container h5 {
+    font-size: 16px;
+  }
+  
+  .search-container {
+    width: 100%;
+  }
+  
+  .data-table {
+    min-width: 500px;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .data-table th {
+    font-size: 11px;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 10px 0;
+  }
+  
+  .pagination-info {
+    text-align: center;
+    font-size: 12px;
+  }
+  
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .pagination-btn {
+    min-width: 70px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .pagination-number {
+    padding: 6px 10px;
+    min-width: 35px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-container {
+    padding: 10px !important;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+  }
+  
+  .list-container {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    max-height: 400px;
+  }
+  
+  .list-container h5 {
+    font-size: 14px;
+  }
+  
+  .search-input {
+    padding: 6px 10px;
+    padding-right: 30px;
+    font-size: 12px;
+  }
+  
+  .data-table {
+    min-width: 400px;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  
+  .data-table th {
+    font-size: 10px;
+  }
+  
+  .serial-no {
+    width: 30px;
+  }
+  
+  .btn-view,
+  .btn-edit,
+  .btn-delete {
+    font-size: 11px;
+    min-width: 18px;
+    height: 18px;
+  }
+  
+  .status {
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+  
+  .pagination-container {
+    gap: 10px;
+    padding: 8px 0;
+  }
+  
+  .pagination-info {
+    font-size: 11px;
+  }
+  
+  .pagination {
+    gap: 6px;
+  }
+  
+  .pagination-btn {
+    min-width: 60px;
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .pagination-number {
+    padding: 5px 8px;
+    min-width: 30px;
+    font-size: 12px;
+  }
+}
