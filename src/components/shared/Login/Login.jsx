@@ -18,9 +18,15 @@ const Login = () => {
         password,
       });
       if (response.data.success) {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data));
-        navigate('/dashboard');
+        // Check user status before allowing login
+        const userStatus = response.data.data.status;
+        if (userStatus === 'Active' || userStatus === true) {
+          localStorage.setItem('token', response.data.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.data));
+          navigate('/dashboard');
+        } else {
+          setError('Account is disabled. Contact your administration.');
+        }
       } else {
         setError(response.data.message || 'Login failed');
       }
