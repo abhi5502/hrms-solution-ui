@@ -1,3 +1,10 @@
+/* Remove unwanted white border from native dialog popups */
+dialog[open] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none;
+  background: transparent;
+}
 /* Common Modal Styles - Reusable across all components */
 .modal-overlay {
   position: fixed;

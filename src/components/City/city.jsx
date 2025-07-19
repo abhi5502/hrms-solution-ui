@@ -369,9 +369,23 @@ export const City = () => {
                 addButtonText="Add City"
                 noDataMessage="No cities found"
                 searchResultsCount={getFilteredCities().length}
+                paginationContent={
+                    getFilteredCities().length > 0 && (
+                        <CommonPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            itemsPerPage={itemsPerPage}
+                            totalItems={getFilteredCities().length}
+                            searchTerm={searchTerm}
+                            onPageChange={handlePageChange}
+                            onPrevPage={handlePrevPage}
+                            onNextPage={handleNextPage}
+                        />
+                    )
+                }
             >
                 {(city) => (
-                    <>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                         <button
                             className="btn-view"
                             title="View City Details"
@@ -396,22 +410,9 @@ export const City = () => {
                         >
                             🗑️
                         </button>
-                    </>
+                    </div>
                 )}
             </CommonTable>
-
-            {getFilteredCities().length > 0 && (
-                <CommonPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    itemsPerPage={itemsPerPage}
-                    totalItems={getFilteredCities().length}
-                    searchTerm={searchTerm}
-                    onPageChange={handlePageChange}
-                    onPrevPage={handlePrevPage}
-                    onNextPage={handleNextPage}
-                />
-            )}
 
             {/* Modals */}
             <CityFormModal

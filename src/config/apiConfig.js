@@ -14,6 +14,7 @@ USERS: {
   UPDATE: `${BASE_API_URL}/Users/user-update`,           
   DELETE: (id) => `${BASE_API_URL}/Users/user-delete/${id}`, 
   GET_BY_ID: (id) => `${BASE_API_URL}/Users/get-user-by-id/${id}`, 
+  UPDATE_User_Lock: `${BASE_API_URL}/Users/update-user-lock`, 
 },
 
 

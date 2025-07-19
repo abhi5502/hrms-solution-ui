@@ -18,6 +18,8 @@ import {
   UserViewModal,
   DeleteConfirmModal,
 } from "./UserModals";
+import { CommonTable } from "../Common/CommonTable";
+import { CommonPagination } from "../Common/CommonPagination";
 import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "./User.css";
 
@@ -98,6 +100,51 @@ export const User = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
+  // Lock/Unlock modal state
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [lockUser, setLockUser] = useState(null);
+  const [lockOperationLoading, setLockOperationLoading] = useState(false);
+  // Lock/Unlock handlers
+  const handleLockUserClick = (user) => {
+    setLockUser(user);
+    setIsLockModalOpen(true);
+  };
+
+  const handleConfirmLockToggle = async () => {
+    if (!lockUser) return;
+    setLockOperationLoading(true);
+    try {
+      const payload = {
+        id: lockUser.id,
+        isUserLocked: !lockUser.isUserLocked,
+        modifiedBy: getCurrentUsername(),
+      };
+      const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE_User_Lock, payload);
+      if (result.success) {
+        toast.success(result.message || "User lock status updated successfully.");
+        // Update user in local state
+        setUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u.id === lockUser.id ? { ...u, isUserLocked: payload.isUserLocked } : u
+          )
+        );
+        setIsLockModalOpen(false);
+        setLockUser(null);
+      } else {
+        toast.error(result.message || "Failed to update user lock status.");
+      }
+    } catch (err) {
+      toast.error("Error updating user lock status.");
+      console.error("Lock/Unlock error:", err);
+    } finally {
+      setLockOperationLoading(false);
+    }
+  };
+
+  const handleCancelLockToggle = () => {
+    setIsLockModalOpen(false);
+    setLockUser(null);
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -172,6 +219,11 @@ export const User = () => {
       }
       return 0;
     });
+  };
+
+  // Lock/Unlock icon helper
+  const getLockIcon = (isLocked) => {
+    return isLocked ? "🔒" : "🔓";
   };
 
   // Get paginated users
@@ -256,81 +308,35 @@ export const User = () => {
   const handleSaveUser = async (userData) => {
     try {
       setOperationLoading(true);
-      
+
       if (editingUser) {
-        // Only set ModifiedBy, never update CreatedBy on edit
-        const updatePayload = {
-          id: editingUser.id, // Use 'id' instead of 'userId' as this format works
-          email: userData.email?.trim() || "",
-          userName: userData.userName?.trim() || "",
-          firstName: userData.firstName?.trim() || "",
-          middleName: userData.middleName?.trim() || "",
-          lastName: userData.lastName?.trim() || "",
-          country: userData.country?.trim() || "",
-          phoneNumber: userData.phoneNumber?.trim() || "",
-          gender: parseInt(userData.gender) || 0,
-          status: userData.status === "Active", // Use boolean format as this works
-          roleIds: Array.isArray(userData.roleIds) ? userData.roleIds : [],
-          permissionIds: Array.isArray(userData.permissionIds) ? userData.permissionIds : [],
-          moduleIds: Array.isArray(userData.moduleIds) ? userData.moduleIds : [],
-          ModifiedBy: getCurrentUsername(),
+        // Update user
+        const payload = {
+          ...userData,
+          id: editingUser.id,
+          modifiedBy: getCurrentUsername(),
         };
-
-        // Validate required fields
-        if (!updatePayload.email || !updatePayload.userName || !updatePayload.firstName || !updatePayload.lastName) {
-          toast.error("Required fields are missing");
-          return;
-        }
-
-        console.log("Update payload:", updatePayload);
-
-        // Update existing user using apiHelper
-        const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE, updatePayload);
-        
-        console.log("Update response:", result);
-        
-        // Check if the response is successful
+        const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE(editingUser.id), payload);
         if (result.success) {
+          toast.success(result.message || "User updated successfully.");
           await fetchUsers();
-          toast.success("User updated successfully!");
           setIsUserFormOpen(false);
-          setEditingUser(null);
         } else {
-          console.error("Update failed - Result:", result);
-          toast.error(result.message || "Failed to update user");
+          toast.error(result.message || "Failed to update user.");
         }
       } else {
-        // Prepare the create payload
-        const createPayload = {
-          email: userData.email,
-          userName: userData.userName,
-          firstName: userData.firstName,
-          middleName: userData.middleName || "",
-          lastName: userData.lastName,
-          country: userData.country,
-          phoneNumber: userData.phoneNumber,
-          gender: userData.gender === "Female" ? 1 : 0, 
-          status: userData.status === "Active",
-          roleIds: userData.roleIds || [],
-          permissionIds: userData.permissionIds || [],
-          moduleIds: userData.moduleIds || [],
-          password: userData.password,
-          CreatedBy: getCurrentUsername(),
+        // Create user
+        const payload = {
+          ...userData,
+          createdBy: getCurrentUsername(),
         };
-
-        console.log("Create payload:", createPayload);
-
-        // Create new user using apiHelper
-        const result = await apiHelper.post(API_ENDPOINTS.USERS.CREATE, createPayload);
-        
-        // Check if the response is successful
+        const result = await apiHelper.post(API_ENDPOINTS.USERS.CREATE, payload);
         if (result.success) {
+          toast.success(result.message || "User created successfully.");
           await fetchUsers();
-          toast.success("User created successfully!");
           setIsUserFormOpen(false);
-          setEditingUser(null);
         } else {
-          toast.error(result.message || "Failed to create user");
+          toast.error(result.message || "Failed to create user.");
         }
       }
     } catch (err) {
@@ -377,286 +383,220 @@ export const User = () => {
     );
   }
 
+  // Table columns
+  const columns = [
+    {
+      field: "fullName",
+      header: "Full Name",
+      sortable: true,
+      sortClass: getSortClass("fullName"),
+      sortIndicator: getSortIndicator("fullName"),
+      onSort: handleSort,
+      className: "user-name",
+      render: (user) => user.fullName,
+    },
+    {
+      field: "email",
+      header: "Email",
+      sortable: true,
+      sortClass: getSortClass("email"),
+      sortIndicator: getSortIndicator("email"),
+      onSort: handleSort,
+      className: "user-email",
+      render: (user) => user.email,
+    },
+    {
+      field: "roles",
+      header: "Roles",
+      sortable: false,
+      className: "user-roles",
+      render: (user) =>
+        user.roles && user.roles.length > 0 ? (
+          <span className="roles-display">
+            {user.roles.slice(0, 2).map((role) => (
+              <span key={role} className="role-badge">{role}</span>
+            ))}
+            {user.roles.length > 2 && (
+              <span className="role-more">+{user.roles.length - 2}</span>
+            )}
+          </span>
+        ) : (
+          <span className="no-roles">No Roles</span>
+        ),
+    },
+    {
+      field: "permissions",
+      header: "Permissions",
+      sortable: false,
+      className: "user-permissions",
+      render: (user) =>
+        user.permissions && user.permissions.length > 0 ? (
+          <span className="permissions-display">
+            {user.permissions.slice(0, 2).map((perm) => (
+              <span key={perm} className="permission-badge">{perm}</span>
+            ))}
+            {user.permissions.length > 2 && (
+              <span className="permission-more">+{user.permissions.length - 2}</span>
+            )}
+          </span>
+        ) : (
+          <span className="no-permissions">No Permissions</span>
+        ),
+    },
+    {
+      field: "modules",
+      header: "Modules",
+      sortable: false,
+      className: "user-modules",
+      render: (user) =>
+        user.modules && user.modules.length > 0 ? (
+          <span className="modules-display">
+            {user.modules.slice(0, 2).map((mod) => (
+              <span key={mod} className="module-badge">{mod}</span>
+            ))}
+            {user.modules.length > 2 && (
+              <span className="module-more">+{user.modules.length - 2}</span>
+            )}
+          </span>
+        ) : (
+          <span className="no-modules">No Modules</span>
+        ),
+    },
+     {
+            field: 'status',
+            header: 'Status',
+            sortable: true,
+            sortClass: getSortClass('status'),
+            sortIndicator: getSortIndicator('status'),
+            onSort: handleSort,
+            render: (user) => (
+                <span className={`status ${user.status?.toLowerCase() === 'active' ? 'active' : 'inactive'}`}>
+                    {user.status}
+                </span>
+            )
+        },
+    // Actions column removed; handled by CommonTable children
+  ];
+
   return (
-    <div className="user-container">
-      <div className="page-header">
-        <h1>Users</h1>
-        <button className="btn-add" onClick={handleAddUser}>
-          + Add User
-        </button>
-      </div>
-
-      <div className="users-list">
-        <div className="user-list-header">
-          <h5>User-List</h5>
-          <div className="search-container">
-            <div className="search-box">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search by name, email..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchTerm && (
-                <button className="clear-search-btn" onClick={clearSearch}>
-                  ×
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {searchTerm && (
-          <div className="search-results-info">
-            {getFilteredUsers().length} user(s) found
-          </div>
-        )}
-
-        <div
-          className={`table-wrapper ${
-            operationLoading ? "table-loading-overlay" : ""
-          }`}
-        >
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th
-                  className={getSortClass("fullName")}
-                  onClick={() => handleSort("fullName")}
-                >
-                  Name{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("fullName")}
-                  </span>
-                </th>
-                <th
-                  className={getSortClass("email")}
-                  onClick={() => handleSort("email")}
-                >
-                  Email{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("email")}
-                  </span>
-                </th>
-                <th>Roles</th>
-                <th>Permissions</th>
-                <th>Modules</th>
-                <th>Country</th>
-                <th
-                  className={getSortClass("status")}
-                  onClick={() => handleSort("status")}
-                >
-                  Status{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("status")}
-                  </span>
-                </th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getPaginatedUsers().map((user, index) => (
-                <tr key={user.id}>
-                  <td className="serial-no">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td className="user-name">{user.fullName}</td>
-                  <td className="user-email">
-                    <a href={`mailto:${user.email}`}>{user.email}</a>
-                  </td>
-                  <td className="user-roles">
-                    {user.roles?.length > 0 ? (
-                      <div className="roles-display">
-                        {user.roles.slice(0, 2).map((role, idx) => (
-                          <span key={`${user.id}-role-${idx}`} className="role-badge">
-                            {role}
-                          </span>
-                        ))}
-                        {user.roles.length > 2 && (
-                          <span className="role-more">
-                            +{user.roles.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="no-roles">No roles</span>
-                    )}
-                  </td>
-                  <td className="user-permissions">
-                    {user.permissions?.length > 0 ? (
-                      <div className="permissions-display">
-                        {user.permissions.slice(0, 2).map((permission, idx) => (
-                          <span key={`${user.id}-permission-${idx}`} className="permission-badge">
-                            {permission}
-                          </span>
-                        ))}
-                        {user.permissions.length > 2 && (
-                          <span className="permission-more">
-                            +{user.permissions.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="no-permissions">No permissions</span>
-                    )}
-                  </td>
-                  <td className="user-modules">
-                    {user.modules?.length > 0 ? (
-                      <div className="modules-display">
-                        {user.modules.slice(0, 2).map((module, idx) => (
-                          <span key={`${user.id}-module-${idx}`} className="module-badge">
-                            {module}
-                          </span>
-                        ))}
-                        {user.modules.length > 2 && (
-                          <span className="module-more">
-                            +{user.modules.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="no-modules">No modules</span>
-                    )}
-                  </td>
-                  <td className="user-country">{user.country || "N/A"}</td>
-                  <td>
-                    <span className={`status ${user.status?.toLowerCase()}`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-view"
-                      title="View User Details"
-                      onClick={() => handleViewUser(user)}
-                      disabled={operationLoading}
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className="btn-edit"
-                      title="Edit User"
-                      onClick={() => handleEditUser(user)}
-                      disabled={operationLoading}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="btn-delete"
-                      title="Delete User"
-                      onClick={() => handleDeleteUser(user)}
-                      disabled={operationLoading}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {getFilteredUsers().length > 0 && (
-          <div className="pagination-container">
-            <div className="pagination-info">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(
-                currentPage * itemsPerPage,
-                getFilteredUsers().length
-              )}{" "}
-              of {getFilteredUsers().length} users
-              {searchTerm && " (filtered)"}
-            </div>
-
-            <div className="pagination">
-              <button
-                className="pagination-btn"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                ← Previous
-              </button>
-
-              <div className="pagination-numbers">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((page) => {
-                    const start = Math.max(1, currentPage - 2);
-                    const end = Math.min(totalPages, currentPage + 2);
-                    return page >= start && page <= end;
-                  })
-                  .map((page) => (
-                    <button
-                      key={page}
-                      className={`pagination-number ${
-                        page === currentPage ? "active" : ""
-                      }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
-              </div>
-
-              <button
-                className="pagination-btn"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {getFilteredUsers().length === 0 && users.length > 0 && (
-          <div className="no-data">
-            No users found matching "{searchTerm}"
-            <br />
-            <button className="btn-clear-search" onClick={clearSearch}>
-              Clear search
+    <>
+      <CommonTable
+        title="Users"
+        data={getPaginatedUsers()}
+        columns={columns}
+        loading={loading}
+        operationLoading={operationLoading}
+        searchTerm={searchTerm}
+        onSearch={handleSearch}
+        onClearSearch={clearSearch}
+        onAdd={handleAddUser}
+        searchPlaceholder="Search users, emails, roles..."
+        addButtonText="Add User"
+        noDataMessage="No users found"
+        searchResultsCount={getFilteredUsers().length}
+        paginationContent={
+          getFilteredUsers().length > 0 && (
+            <CommonPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={getFilteredUsers().length}
+              searchTerm={searchTerm}
+              onPageChange={handlePageChange}
+              onPrevPage={handlePrevPage}
+              onNextPage={handleNextPage}
+            />
+          )
+        }
+      >
+        {(user) => (
+          <div>
+            <button
+              className="btn-lock"
+              title={user.isUserLocked ? "Unlock User" : "Lock User"}
+              onClick={() => handleLockUserClick(user)}
+              disabled={operationLoading || lockOperationLoading}
+              style={{ background: 'none' }}
+            >
+              {getLockIcon(user.isUserLocked)}
+            </button>
+            <button
+              className="btn-view"
+              title="View User Details"
+              onClick={() => handleViewUser(user)}
+              disabled={operationLoading}
+            >
+              👁️
+            </button>
+            <button
+              className="btn-edit"
+              title="Edit User"
+              onClick={() => handleEditUser(user)}
+              disabled={operationLoading}
+            >
+              ✏️
+            </button>
+            <button
+              className="btn-delete"
+              title="Delete User"
+              onClick={() => handleDeleteUser(user)}
+              disabled={operationLoading}
+            >
+              🗑️
             </button>
           </div>
         )}
+      </CommonTable>
 
-        {users.length === 0 && (
-          <div className="no-data">No users found</div>
-        )}
-      </div>
+      {/* Lock/Unlock Modal */}
+      {isLockModalOpen && lockUser && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 400, minWidth: 320, textAlign: 'center' }}>
+            <div className="modal-header" style={{ justifyContent: 'center', borderBottom: 'none', background: 'none' }}>
+              <h2 style={{ fontSize: '1.3rem', margin: 0 }}>
+                {lockUser.isUserLocked ? 'Are you sure to Unlock this user?' : 'Are you sure to Lock this user?'}
+              </h2>
+            </div>
+            <div className="modal-footer" style={{ justifyContent: 'center', gap: 20, borderTop: 'none', background: 'none', marginTop: 20 }}>
+              <button
+                className="btn-save"
+                onClick={handleConfirmLockToggle}
+                disabled={lockOperationLoading}
+                style={{ minWidth: 100 }}
+              >
+                Confirm
+              </button>
+              <button
+                className="btn-cancel"
+                onClick={handleCancelLockToggle}
+                disabled={lockOperationLoading}
+                style={{ minWidth: 100 }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* User Form Modal */}
+      {/* Modals */}
       <UserFormModal
         isOpen={isUserFormOpen}
-        onClose={() => {
-          setIsUserFormOpen(false);
-          setEditingUser(null);
-        }}
+        onClose={() => setIsUserFormOpen(false)}
         user={editingUser}
         onSave={handleSaveUser}
       />
-
-      {/* Delete Confirmation Modal */}
+      <UserViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        user={selectedUser}
+      />
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedUser(null);
-        }}
+        onClose={() => setIsDeleteModalOpen(false)}
         user={selectedUser}
         onConfirm={handleConfirmDelete}
       />
-
-      {/* View User Details Modal */}
-      <UserViewModal
-        isOpen={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedUser(null);
-        }}
-        user={selectedUser}
-      />
-    </div>
+    </>
   );
-};
+}

@@ -1,57 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import {
-  CountryFormModal,
-  DeleteConfirmModal,
-  ViewCountryModal,
-} from "./CountryModals";
+import { CountryFormModal, DeleteConfirmModal, ViewCountryModal } from "./CountryModals";
+import { CommonTable } from "../Common/CommonTable";
+import { CommonPagination } from "../Common/CommonPagination";
 import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
-import "./country.css";
+import "../../styles/common/CommonTable.css";
+import "../../styles/common/CommonModal.css";
 
 // Skeleton Loading Component
 const CountriesSkeleton = () => (
-  <div className="country-container">
-    <div className="page-header">
-      <div className="skeleton-title"></div>
-      <div className="skeleton-button"></div>
-    </div>
-
-    <div className="countries-list">
-      <div className="country-list-header">
-        <h5>Country-List</h5>
-        <div className="search-container">
-          <div className="search-box">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by country name..."
-              disabled
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="table-wrapper">
-        <div className="skeleton-table">
-          <div className="skeleton-table-header">
-            <div>S.No</div>
-            <div>Country Name</div>
-            <div>Status</div>
-            <div>Actions</div>
-          </div>
-          {Array.from({ length: 6 }, (_, index) => (
-            <div key={`skeleton-${index}`} className="skeleton-row">
-              <div className="skeleton-cell serial"></div>
-              <div className="skeleton-cell name"></div>
-              <div className="skeleton-cell status"></div>
-              <div className="skeleton-cell actions"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+  <div className="table-container">
+    <div className="loading">Loading countries...</div>
   </div>
 );
+
 
 export const Country = () => {
   const [countries, setCountries] = useState([]);
@@ -65,7 +27,7 @@ export const Country = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // Sorting states
-  const [sortField, setSortField] = useState("countryName");
+  const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
 
   // Search state
@@ -400,198 +362,110 @@ const updateCountry = async (countryData) => {
     }
   };
 
+
   if (loading) {
     return <CountriesSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="country-container">
+      <div className="table-container">
         <h1>Countries</h1>
         <div className="error">Error: {error}</div>
       </div>
     );
   }
 
+  // Table columns (reference City)
+  const columns = [
+    {
+      field: "name",
+      header: "Country Name",
+      sortable: true,
+      sortClass: getSortClass("name"),
+      sortIndicator: getSortIndicator("name"),
+      onSort: handleSort,
+      className: "country-name",
+      render: (country) => country.name,
+    },
+    {
+            field: 'status',
+            header: 'Status',
+            sortable: true,
+            sortClass: getSortClass('status'),
+            sortIndicator: getSortIndicator('status'),
+            onSort: handleSort,
+            render: (country) => (
+                <span className={`status ${country.status?.toLowerCase() === 'active' ? 'active' : 'inactive'}`}>
+                    {country.status}
+                </span>
+            )
+        }
+    // Actions handled by CommonTable children
+  ];
+
   return (
-    <div className="country-container">
-      <div className="page-header">
-        <h1>Countries</h1>
-        <button className="btn-add" onClick={handleAddCountry}>
-          + Add Country
-        </button>
-      </div>
-
-      <div className="countries-list">
-        <div className="country-list-header">
-          <h5>Country-List</h5>
-          <div className="search-container">
-            <div className="search-box">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search by country name..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchTerm && (
-                <button className="clear-search-btn" onClick={clearSearch}>
-                  ×
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {searchTerm && (
-          <div className="search-results-info">
-            {getFilteredCountries().length} country(s) found
-          </div>
-        )}
-
-        <div
-          className={`table-wrapper ${
-            operationLoading ? "table-loading-overlay" : ""
-          }`}
-        >
-          <table className="countries-table">
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th
-                  className={getSortClass("name")}
-                  onClick={() => handleSort("name")}
-                >
-                  Country Name{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("name")}
-                  </span>
-                </th>
-                <th
-                  className={getSortClass("status")}
-                  onClick={() => handleSort("status")}
-                >
-                  Status{" "}
-                  <span className="sort-indicator">
-                    {getSortIndicator("status")}
-                  </span>
-                </th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getPaginatedCountries().map((country, index) => (
-                <tr key={country.id}>
-                  <td className="serial-no">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td className="country-name">{country.name}</td>
-                  <td>
-                    <span className={`status ${country.status.toLowerCase()}`}>
-                      {country.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-view"
-                      title="View Country Details"
-                      onClick={() => handleViewCountry(country)}
-                      disabled={operationLoading}
-                    >
-                      👁️
-                    </button>
-                    <button
-                      className="btn-edit"
-                      title="Edit Country"
-                      onClick={() => handleEditCountry(country)}
-                      disabled={operationLoading}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="btn-delete"
-                      title="Delete Country"
-                      onClick={() => handleDeleteCountry(country)}
-                      disabled={operationLoading}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {getFilteredCountries().length > 0 && (
-          <div className="pagination-container">
-            <div className="pagination-info">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(
-                currentPage * itemsPerPage,
-                getFilteredCountries().length
-              )}{" "}
-              of {getFilteredCountries().length} countries
-              {searchTerm && " (filtered)"}
-            </div>
-
-            <div className="pagination">
-              <button
-                className="pagination-btn"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                ← Previous
-              </button>
-
-              <div className="pagination-numbers">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((page) => {
-                    const start = Math.max(1, currentPage - 2);
-                    const end = Math.min(totalPages, currentPage + 2);
-                    return page >= start && page <= end;
-                  })
-                  .map((page) => (
-                    <button
-                      key={page}
-                      className={`pagination-number ${
-                        page === currentPage ? "active" : ""
-                      }`}
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </button>
-                  ))}
-              </div>
-
-              <button
-                className="pagination-btn"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {getFilteredCountries().length === 0 && countries.length > 0 && (
-          <div className="no-data">
-            No countries found matching "{searchTerm}"
-            <br />
-            <button className="btn-clear-search" onClick={clearSearch}>
-              Clear search
+    <>
+      <CommonTable
+        title="Countries"
+        data={getPaginatedCountries()}
+        columns={columns}
+        loading={loading}
+        operationLoading={operationLoading}
+        searchTerm={searchTerm}
+        onSearch={handleSearch}
+        onClearSearch={clearSearch}
+        onAdd={handleAddCountry}
+        searchPlaceholder="Search by country name..."
+        addButtonText="Add Country"
+        noDataMessage="No countries found"
+        searchResultsCount={getFilteredCountries().length}
+        paginationContent={
+          getFilteredCountries().length > 0 && (
+            <CommonPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={getFilteredCountries().length}
+              searchTerm={searchTerm}
+              onPageChange={handlePageChange}
+              onPrevPage={handlePrevPage}
+              onNextPage={handleNextPage}
+            />
+          )
+        }
+      >
+        {(country) => (
+          <div>
+            <button
+              className="btn-view"
+              title="View Country Details"
+              onClick={() => handleViewCountry(country)}
+              disabled={operationLoading}
+            >
+              👁️
+            </button>
+            <button
+              className="btn-edit"
+              title="Edit Country"
+              onClick={() => handleEditCountry(country)}
+              disabled={operationLoading}
+            >
+              ✏️
+            </button>
+            <button
+              className="btn-delete"
+              title="Delete Country"
+              onClick={() => handleDeleteCountry(country)}
+              disabled={operationLoading}
+            >
+              🗑️
             </button>
           </div>
         )}
+      </CommonTable>
 
-        {countries.length === 0 && (
-          <div className="no-data">No countries found</div>
-        )}
-      </div>
-
-      {/* Country Form Modal */}
+      {/* Modals */}
       <CountryFormModal
         isOpen={isCountryFormOpen}
         onClose={() => {
@@ -601,8 +475,6 @@ const updateCountry = async (countryData) => {
         country={editingCountry}
         onSave={handleSaveCountry}
       />
-
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
@@ -612,8 +484,6 @@ const updateCountry = async (countryData) => {
         country={selectedCountry}
         onConfirm={handleConfirmDelete}
       />
-
-      {/* View Country Details Modal */}
       <ViewCountryModal
         isOpen={isViewModalOpen}
         onClose={() => {
@@ -622,6 +492,6 @@ const updateCountry = async (countryData) => {
         }}
         country={selectedCountry}
       />
-    </div>
+    </>
   );
 };

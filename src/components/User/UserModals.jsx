@@ -1307,18 +1307,11 @@ export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
       }
 
       return (
-        <div
+        <button
           key={item.id}
+          type="button"
           className={`assignment-item ${assignedIds.includes(item.id) ? 'assigned' : ''}`}
           onClick={() => handleItemToggle(item.id, type)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleItemToggle(item.id, type);
-            }
-          }}
-          role="button"
-          tabIndex={0}
         >
           <div className="item-info">
             <h4>{highlightSearchTerm(itemName)}</h4>
@@ -1331,7 +1324,7 @@ export const CommonAssignModal = ({ isOpen, onClose, user, onSave }) => {
               <span className="status-unassigned">+ Assign</span>
             )}
           </div>
-        </div>
+        </button>
       );
     });
   };

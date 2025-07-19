@@ -16,7 +16,8 @@ export const CommonTable = ({
   addButtonText = "Add New",
   noDataMessage = "No data found",
   searchResultsCount,
-  children
+  children,
+  paginationContent
 }) => {
   if (loading) {
     return (
@@ -81,7 +82,7 @@ export const CommonTable = ({
                     )}
                   </th>
                 ))}
-                <th>Actions</th>
+                {children && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -93,9 +94,11 @@ export const CommonTable = ({
                       {column.render ? column.render(item) : item[column.field]}
                     </td>
                   ))}
-                  <td>
-                    {children && children(item)}
-                  </td>
+                  {children && (
+                    <td>
+                      {children(item)}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -117,6 +120,9 @@ export const CommonTable = ({
             )}
           </div>
         )}
+
+        {/* Pagination content injected here */}
+        {paginationContent}
       </div>
     </div>
   );
@@ -147,5 +153,6 @@ CommonTable.propTypes = {
   addButtonText: PropTypes.string,
   noDataMessage: PropTypes.string,
   searchResultsCount: PropTypes.number,
-  children: PropTypes.func
+  children: PropTypes.func,
+  paginationContent: PropTypes.node
 };
