@@ -72,19 +72,22 @@ export const CountryFormModal = ({ isOpen, onClose, country = null, onSave, load
       className="modal-overlay"
       open={isOpen}
       onClose={onClose}
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={e => {
+        if (e.key === "Escape") onClose();
+      }}
     >
       <div
         className="modal-content form-modal"
         tabIndex={-1}
-        onClick={e => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-        onKeyDown={e => {
-          if (e.key === "Escape") onClose();
-        }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="country-modal-title"
       >
         <div className="modal-header">
-          <h2>{country ? "Edit Country" : "Add Country"}</h2>
+          <h2 id="country-modal-title">{country ? "Edit Country" : "Add Country"}</h2>
           <button
             className="close-btn"
             onClick={onClose}
@@ -158,6 +161,7 @@ CountryFormModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   country: PropTypes.object,
   onSave: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
 };
 
 // View Country Modal (City style)
@@ -201,18 +205,22 @@ export const ViewCountryModal = ({ isOpen, onClose, country }) => {
                 </span>
               </span>
             </div>
-            {country.createdAt && (
-              <div className="detail-row">
-                <span className="detail-label">Created At:</span>
-                <span className="detail-value">{new Date(country.createdAt).toLocaleDateString()}</span>
-              </div>
-            )}
-            {country.updatedAt && (
-              <div className="detail-row">
-                <span className="detail-label">Last Updated:</span>
-                <span className="detail-value">{new Date(country.updatedAt).toLocaleDateString()}</span>
-              </div>
-            )}
+            <div className="detail-row">
+              <span className="detail-label">Created By:</span>
+              <span className="detail-value">{country.createdBy || <span style={{color:'#888'}}>N/A</span>}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Modified By:</span>
+              <span className="detail-value">{country.modifiedBy || <span style={{color:'#888'}}>N/A</span>}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Created Date:</span>
+              <span className="detail-value">{country.createdDate ? new Date(country.createdDate).toLocaleString() : <span style={{color:'#888'}}>N/A</span>}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Modified Date:</span>
+              <span className="detail-value">{country.modifiedDate ? new Date(country.modifiedDate).toLocaleString() : <span style={{color:'#888'}}>N/A</span>}</span>
+            </div>
           </div>
         </div>
         <div className="modal-footer">

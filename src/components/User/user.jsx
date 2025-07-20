@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
+import {
+  UserFormModal,
+  UserViewModal,
+  DeleteConfirmModal,
+} from "./UserModals";
+import { CommonTable } from "../Common/CommonTable";
+import { CommonPagination } from "../Common/CommonPagination";
+import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
+import "./User.css";
+import "../../styles/common/CommonSkeleton.css";
+import "../../styles/common/CommonTable.css";
+import { CommonSkeletonTable } from "../Common/CommonSkeletonTable";
+
 // Helper to get current username from localStorage
 function getCurrentUsername() {
   try {
@@ -13,68 +26,6 @@ function getCurrentUsername() {
     return null;
   }
 }
-import {
-  UserFormModal,
-  UserViewModal,
-  DeleteConfirmModal,
-} from "./UserModals";
-import { CommonTable } from "../Common/CommonTable";
-import { CommonPagination } from "../Common/CommonPagination";
-import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
-import "./User.css";
-
-// Skeleton Loading Component
-const UsersSkeleton = () => (
-  <div className="user-container">
-    <div className="page-header">
-      <div className="skeleton-title"></div>
-      <div className="skeleton-button"></div>
-    </div>
-
-    <div className="users-list">
-      <div className="user-list-header">
-        <h5>User-List</h5>
-        <div className="search-container">
-          <div className="search-box">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by name, email..."
-              disabled
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="table-wrapper">
-        <div className="skeleton-table">
-          <div className="skeleton-table-header">
-            <div>S.No</div>
-            <div>Name</div>
-            <div>Email</div>
-            <div>Roles</div>
-            <div>Permissions</div>
-            <div>Modules</div>
-            <div>Status</div>
-            <div>Actions</div>
-          </div>
-          {Array.from({ length: 6 }, (_, index) => (
-            <div key={`skeleton-${index}`} className="skeleton-row">
-              <div className="skeleton-cell serial"></div>
-              <div className="skeleton-cell name"></div>
-              <div className="skeleton-cell email"></div>
-              <div className="skeleton-cell roles"></div>
-              <div className="skeleton-cell permissions"></div>
-              <div className="skeleton-cell modules"></div>
-              <div className="skeleton-cell status"></div>
-              <div className="skeleton-cell actions"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export const User = () => {
   const [users, setUsers] = useState([]);
@@ -315,8 +266,10 @@ export const User = () => {
           ...userData,
           id: editingUser.id,
           modifiedBy: getCurrentUsername(),
+          // Convert status to boolean for API
+          status: userData.status && userData.status.toLowerCase() === "active"
         };
-        const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE(editingUser.id), payload);
+        const result = await apiHelper.put(API_ENDPOINTS.USERS.UPDATE, payload);
         if (result.success) {
           toast.success(result.message || "User updated successfully.");
           await fetchUsers();
@@ -371,15 +324,19 @@ export const User = () => {
   };
 
   if (loading) {
-    return <UsersSkeleton />;
+    // Use the common skeleton loader with 6 columns (Full Name, Email, Roles, Permissions, Modules, Status) and 10 rows
+    return (
+      <CommonSkeletonTable
+        columns={["Full Name", "Email", "Roles", "Permissions", "Modules", "Status"]}
+        skeletonCells={[1, 2, 3, 4, 5, 6]}
+        rowCount={10}
+      />
+    );
   }
 
   if (error) {
     return (
-      <div className="user-container">
-        <h1>Users</h1>
-        <div className="error">Error: {error}</div>
-      </div>
+      <div className="error">Error: {error}</div>
     );
   }
 

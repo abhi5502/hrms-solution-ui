@@ -4,18 +4,16 @@ import { CountryFormModal, DeleteConfirmModal, ViewCountryModal } from "./Countr
 import { CommonTable } from "../Common/CommonTable";
 import { CommonPagination } from "../Common/CommonPagination";
 import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
+import { getCurrentUsername } from '../../utils/userUtils';
 import "../../styles/common/CommonTable.css";
 import "../../styles/common/CommonModal.css";
+import "../../styles/common/CommonSkeleton.css";
 
-// Skeleton Loading Component
-const CountriesSkeleton = () => (
-  <div className="table-container">
-    <div className="loading">Loading countries...</div>
-  </div>
-);
+import { CommonSkeletonTable } from "../Common/CommonSkeletonTable";
 
 
 export const Country = () => {
+  const username = getCurrentUsername();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
@@ -62,7 +60,9 @@ export const Country = () => {
         name: country.countryName, // Map countryName to name
         status: country.status,    // Direct mapping - already Active/Inactive
         createdDate: country.createdDate,
-        modifiedDate: country.modifiedDate
+        modifiedDate: country.modifiedDate,
+        createdBy: country.createdBy,
+        modifiedBy: country.modifiedBy
       }));
       
       console.log("Mapped Countries:", mappedCountries);
@@ -200,7 +200,16 @@ export const Country = () => {
   };
 
   const handleViewCountry = (country) => {
-    setSelectedCountry(country);
+    // If country already has createdBy/modifiedBy, use as is. If not, try to get from countries list (for list view vs. single fetch)
+    let fullCountry = country;
+    if (!country.createdBy || !('createdBy' in country)) {
+      // Try to find in countries list by id
+      const found = countries.find(c => c.id === country.id);
+      if (found) {
+        fullCountry = { ...country, ...found };
+      }
+    }
+    setSelectedCountry(fullCountry);
     setIsViewModalOpen(true);
   };
 
@@ -244,13 +253,20 @@ export const Country = () => {
 // Helper: Update country
 const updateCountry = async (countryData) => {
   try {
+    
+// Yahan original country ka createdBy le lo
+    const originalCountry = countries.find(c => c.id === editingCountry.id);
+    const createdBy = originalCountry?.createdBy || editingCountry?.createdBy || username;
+
     console.log("Attempting to update country with data:", countryData);
     console.log("Editing country:", editingCountry);
 
     const requestData = {
       id: editingCountry.id,
       countryName: countryData.name,
-      status: countryData.status.toLowerCase() === "active"
+      status: countryData.status.toLowerCase() === "active",
+      modifiedBy: username,
+      createdBy: createdBy, // Use original country's createdBy
     };
 
     console.log("Update request data:", requestData);
@@ -277,10 +293,11 @@ const updateCountry = async (countryData) => {
   // Helper: Create country
  const createCountry = async (countryData) => {
   try {
-    console.log("Creating country with data:", countryData);
+    console.log("Creating country with data:", countryData, username);
     
     const requestData = {
       countryName: countryData.name,
+      createdBy: username,  
     };
 
     console.log("Create request data:", requestData);
@@ -363,8 +380,12 @@ const updateCountry = async (countryData) => {
   };
 
 
+
   if (loading) {
-    return <CountriesSkeleton />;
+    // Use the common skeleton loader with 2 columns (Country Name, Status) and 10 rows
+    return (
+      <CommonSkeletonTable columns={["Country Name", "Status"]} skeletonCells={[1, 2]} rowCount={10} />
+    );
   }
 
   if (error) {

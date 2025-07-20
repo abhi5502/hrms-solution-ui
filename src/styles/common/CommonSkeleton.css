@@ -1,0 +1,61 @@
+/* Common Skeleton Table Styles - for all modules */
+.skeleton-title {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 32px;
+  width: 200px;
+}
+.skeleton-button {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 40px;
+  width: 120px;
+}
+.skeleton-table {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.skeleton-table-header {
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-bottom: 2px solid #333;
+  display: flex;
+  font-weight: bold;
+  color: #ccc;
+}
+.skeleton-table-header > div {
+  flex: 1;
+  text-align: left;
+}
+.skeleton-row {
+  display: flex;
+  padding: 15px;
+  border-bottom: 1px solid #333;
+  align-items: center;
+  gap: 20px;
+}
+.skeleton-cell {
+  background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  height: 16px;
+}
+.skeleton-cell.serial { width: 40px; }
+.skeleton-cell.name { width: 200px; }
+.skeleton-cell.email { width: 180px; }
+.skeleton-cell.roles { width: 120px; }
+.skeleton-cell.permissions { width: 120px; }
+.skeleton-cell.modules { width: 120px; }
+.skeleton-cell.status { width: 80px; height: 24px; border-radius: 12px; }
+.skeleton-cell.actions { width: 120px; height: 32px; border-radius: 6px; }
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
