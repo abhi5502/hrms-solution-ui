@@ -63,6 +63,7 @@ MODULES: {
     UPDATE: `${BASE_API_URL}/State/state-update`,
     DELETE: (id) => `${BASE_API_URL}/State/state-delete/${id}`,
     GET_BY_ID: (id) => `${BASE_API_URL}/State/state-by-id/${id}`,
+    GROUPED_BY_COUNTRY: `${BASE_API_URL}/State/states-grouped-by-country`,
   },
 
   // Cities API

@@ -4,10 +4,12 @@ import Select from "react-select";
 import { API_ENDPOINTS, apiHelper } from "../../config/apiConfig";
 import "../../styles/common/CommonModal.css";
 
-// Fix: Use countryName for label if present, fallback to name
-const toOption = (item) => ({ value: item.id, label: item.countryName || item.name });
+// Helper for react-select option
+const toOption = (item) => ({
+  value: item.id,
+  label: item.countryName || item.name || item.stateName || item.cityName,
+});
 
-// ----------- COMPANY MODAL -----------
 export const CompanyModal = ({
   isOpen,
   onClose,
@@ -17,7 +19,7 @@ export const CompanyModal = ({
   industries = [],
 }) => {
   const [countries, setCountries] = useState([]);
-  const [states, setStates] = useState([]);
+  const [states, setStates] = useState([]); // GROUPED [{label, options: [...] }]
   const [cities, setCities] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -42,14 +44,12 @@ export const CompanyModal = ({
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch countries when modal opens
+  // --- Fetch countries when modal opens ---
   useEffect(() => {
-    if (isOpen) {
-      fetchCountries();
-    }
+    if (isOpen) fetchCountries();
   }, [isOpen]);
 
-  // Populate for Edit
+  // --- Populate for Edit ---
   useEffect(() => {
     if (company) {
       setFormData((prev) => ({
@@ -69,109 +69,93 @@ export const CompanyModal = ({
           ? company.establishedDate.substring(0, 10)
           : "",
       }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        status: "active",
-      }));
     }
-    setErrors({});
-    setIsSubmitting(false);
-  }, [company, isOpen]);
+  }, [company]);
 
-  // Fetch states when countryIds change
+  // Fetch grouped states when countryIds change
   useEffect(() => {
-    if (formData.countryIds.length > 0) {
-      Promise.all(formData.countryIds.map((cid) => fetchStates(cid))).then(
-        (results) => {
-          // Group states by country
-          const groupedStates = results.map((statesArr, idx) => {
-            const countryObj = countries.find(c => c.id === formData.countryIds[idx]);
-            return {
-              label: countryObj ? (countryObj.countryName || countryObj.name) : 'Country',
-              options: statesArr.map(s => ({ value: s.id, label: s.stateName || s.name, countryId: countryObj?.id }))
-            };
-          }).filter(group => group.options.length > 0);
-          setStates(groupedStates);
-          // Flatten all states for filtering selected stateIds
-          const allStatesFlat = results.flat().filter(Boolean);
-          setFormData((prev) => ({
-            ...prev,
-            stateIds: prev.stateIds.filter((sid) =>
-              allStatesFlat.some((s) => s.id === sid)
-            ),
-            cityIds: prev.cityIds.filter(() => true),
-          }));
+    const fetchGroupedStates = async () => {
+      if (formData.countryIds.length > 0) {
+        try {
+          const res = await apiHelper.post(API_ENDPOINTS.STATES.GROUPED_BY_COUNTRY, formData.countryIds);
+          if (res.success && Array.isArray(res.data)) {
+            // Format for react-select grouped options
+            const groupedStates = res.data.map(group => ({
+              label: group.countryName,
+              options: (group.states || []).map(s => ({
+                value: s.id,
+                label: s.stateName || s.name,
+                countryId: group.countryId
+              }))
+            })).filter(group => group.options.length > 0);
+            setStates(groupedStates);
+            // Flatten all states for filtering selected stateIds
+            const allStatesFlat = groupedStates.flatMap(g => g.options);
+            setFormData(prev => ({
+              ...prev,
+              stateIds: prev.stateIds.filter(sid => allStatesFlat.some(s => s.value === sid)),
+              cityIds: prev.cityIds.filter(() => true),
+            }));
+          } else {
+            setStates([]);
+          }
+        } catch {
+          setStates([]);
         }
-      );
-    } else {
-      setStates([]);
-      setCities([]);
-      setFormData((prev) => ({ ...prev, stateIds: [], cityIds: [] }));
-    }
-  }, [formData.countryIds, countries]);
+      } else {
+        setStates([]);
+        setCities([]);
+        setFormData(prev => ({ ...prev, stateIds: [], cityIds: [] }));
+      }
+    };
+    fetchGroupedStates();
+  }, [formData.countryIds]);
 
-  // Fetch cities when stateIds change
+  // --- Remove duplicates from stateIds after selection ---
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      stateIds: Array.from(new Set(prev.stateIds)),
+    }));
+  }, [formData.stateIds.length]);
+
+  // --- Cities - fetch for selected stateIds ---
   useEffect(() => {
     if (formData.stateIds.length > 0) {
-      Promise.all(formData.stateIds.map((sid) => fetchCities(sid))).then(
-        (results) => {
-          const allCities = results.flat().filter(Boolean);
-          setCities(allCities);
-          setFormData((prev) => ({
-            ...prev,
-            cityIds: prev.cityIds.filter((cid) =>
-              allCities.some((c) => c.id === cid)
-            ),
-          }));
-        }
-      );
+      const fetchAllCities = async () => {
+        const result = await Promise.all(
+          formData.stateIds.map((sid) => fetchCities(sid))
+        );
+        setCities(result.flat().filter(Boolean));
+      };
+      fetchAllCities();
     } else {
       setCities([]);
       setFormData((prev) => ({ ...prev, cityIds: [] }));
     }
   }, [formData.stateIds]);
 
-  // API Calls
-// API Calls
-const fetchCountries = async () => {
-  try {
-    const res = await apiHelper.get(API_ENDPOINTS.COUNTRIES.GET_ALL);
-    if (res.success) {
-      setCountries(res.data || []);
-    } else {
+  // --- API Calls ---
+  const fetchCountries = async () => {
+    try {
+      const res = await apiHelper.get(API_ENDPOINTS.COUNTRIES.GET_ALL);
+      if (res.success) setCountries(res.data || []);
+      else setCountries([]);
+    } catch {
       setCountries([]);
     }
-  } catch (err) {
-    console.error("Error fetching countries:", err);
-    setCountries([]);
+  };
+  // Removed unused fetchStates function
+  async function fetchCities(stateId) {
+    try {
+      const res = await apiHelper.get(`${API_ENDPOINTS.CITIES.GET_ALL}?stateId=${stateId}`);
+      return res.success ? res.data || [] : [];
+    } catch {
+      return [];
+    }
   }
-};
-async function fetchStates(countryId) {
-  try {
-    const res = await apiHelper.get(
-      `${API_ENDPOINTS.STATES.GET_ALL}?countryId=${countryId}`
-    );
-    return res.success ? res.data || [] : [];
-  } catch (err) {
-    console.error("Error fetching states:", err);
-    return [];
-  }
-}
-async function fetchCities(stateId) {
-  try {
-    const res = await apiHelper.get(
-      `${API_ENDPOINTS.CITIES.GET_ALL}?stateId=${stateId}`
-    );
-    return res.success ? res.data || [] : [];
-  } catch (err) {
-    console.error("Error fetching cities:", err);
-    return [];
-  }
-}
 
-
-  // Validation
+  // --- Validation ---
   const validateForm = () => {
     const newErrors = {};
     if (!formData.legalName.trim()) newErrors.legalName = "Legal Name required";
@@ -186,32 +170,36 @@ async function fetchCities(stateId) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle input
+  // --- Input Handlers ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Generic MultiSelect
+  // --- MultiSelect Generic Handler (with deduplication) ---
   const handleMultiSelectChangeGeneric = (name, selectedOptions) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: selectedOptions ? selectedOptions.map((opt) => opt.value) : [],
+      [name]: selectedOptions
+        ? Array.from(new Set(selectedOptions.map((opt) => opt.value)))
+        : [],
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Industry MultiSelect
+  // --- Industry MultiSelect ---
   const handleMultiSelectChange = (selectedOptions) => {
     setFormData((prev) => ({
       ...prev,
-      industryIds: selectedOptions ? selectedOptions.map((opt) => opt.value) : [],
+      industryIds: selectedOptions
+        ? Array.from(new Set(selectedOptions.map((opt) => opt.value)))
+        : [],
     }));
     if (errors["industryIds"]) setErrors((prev) => ({ ...prev, industryIds: "" }));
   };
 
-  // Submit Handler
+  // --- Submit Handler ---
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
@@ -228,15 +216,7 @@ async function fetchCities(stateId) {
 
   if (!isOpen) return null;
 
-  let submitButtonText = isSubmitting
-    ? company
-      ? "Updating..."
-      : "Creating..."
-    : company
-    ? "Update Company"
-    : "Create Company";
-
-  // Custom styles for react-select
+  // --- Custom styles for react-select ---
   const selectStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -257,11 +237,6 @@ async function fetchCities(stateId) {
       width: '100%',
       flex: 1,
       boxSizing: 'border-box',
-      minWidth: undefined,
-      gridArea: undefined,
-      background: 'none',
-      border: 'none',
-      boxShadow: 'none',
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -307,33 +282,30 @@ async function fetchCities(stateId) {
     }),
   };
 
+  let submitButtonText = isSubmitting
+    ? company
+      ? "Updating..."
+      : "Creating..."
+    : company
+    ? "Update Company"
+    : "Create Company";
+
   return (
     <dialog
       className="modal-overlay"
       open={isOpen}
       onClose={onClose}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >
-      <div className="modal-content form-modal" tabIndex={-1}  >
+      <div className="modal-content form-modal" tabIndex={-1}>
         <div className="modal-header">
           <h2>{company ? "Edit Company" : "Add Company"}</h2>
-          <button
-            className="close-btn"
-            onClick={onClose}
-            disabled={isSubmitting || loading}
-            type="button"
-          >
-            ×
-          </button>
+          <button className="close-btn" onClick={onClose} disabled={isSubmitting || loading} type="button">×</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            {/* Legal Name & Industry */}
+            {/* --- Legal Name & Industry --- */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="legalName">
@@ -360,9 +332,7 @@ async function fetchCities(stateId) {
                   inputId="industryIds"
                   isMulti
                   options={industries.map(toOption)}
-                  value={industries
-                    .filter((ind) => formData.industryIds.includes(ind.id))
-                    .map(toOption)}
+                  value={industries.filter((ind) => formData.industryIds.includes(ind.id)).map(toOption)}
                   onChange={handleMultiSelectChange}
                   placeholder="Select industries"
                   classNamePrefix="react-select"
@@ -371,7 +341,7 @@ async function fetchCities(stateId) {
                 />
               </div>
             </div>
-            {/* Registration/Tax */}
+            {/* --- Registration/Tax --- */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="registrationNumber">Registration Number</label>
@@ -402,17 +372,14 @@ async function fetchCities(stateId) {
                 />
               </div>
             </div>
-            {/* Country/State/City */}
+            {/* --- Country/State/City --- */}
             <div className="form-group">
               <label htmlFor="countryIds">Country <span style={{ color: "#ff5252" }}>*</span></label>
               <Select
                 inputId="countryIds"
                 isMulti
                 options={countries.map(toOption)}
-                value={countries
-                  .filter((c) => formData.countryIds.includes(c.id))
-                  .map(toOption)
-                }
+                value={countries.filter((c) => formData.countryIds.includes(c.id)).map(toOption)}
                 onChange={(options) => handleMultiSelectChangeGeneric("countryIds", options)}
                 placeholder="Select country"
                 classNamePrefix="react-select"
@@ -430,36 +397,15 @@ async function fetchCities(stateId) {
               <Select
                 inputId="stateIds"
                 isMulti
-                options={(() => {
-                  // Sort and filter groups according to selected countryIds order
-                  const selectedCountryIds = formData.countryIds;
-                  const sortedGroups = [];
-                  selectedCountryIds.forEach(cid => {
-                    // Find the group for this country and filter only states with matching countryId
-                    const group = states.find(g => g.label && (g.options.some(opt => opt.countryId === cid)));
-                    if (group) {
-                      sortedGroups.push({
-                        label: group.label,
-                        options: group.options.filter(opt => opt.countryId === cid)
-                      });
-                    }
-                  });
-                  // Add any remaining groups (if any)
-                  states.forEach(g => {
-                    if (!sortedGroups.some(sg => sg.label === g.label)) {
-                      sortedGroups.push({
-                        label: g.label,
-                        options: g.options
-                      });
-                    }
-                  });
-                  return sortedGroups.filter(g => g.options.length > 0);
-                })()}
-                value={(() => {
-                  // Flatten all options to match selected stateIds
-                  const allOptions = states.flatMap(group => group.options || []);
-                  return allOptions.filter(opt => formData.stateIds.includes(opt.value));
-                })()}
+                options={states}
+                value={Array.from(
+                  new Map(
+                    states
+                      .flatMap((g) => g.options || [])
+                      .filter((opt) => formData.stateIds.includes(opt.value))
+                      .map((opt) => [opt.value, opt])
+                  ).values()
+                )}
                 onChange={(options) => handleMultiSelectChangeGeneric("stateIds", options)}
                 placeholder="Select state"
                 classNamePrefix="react-select"
@@ -467,7 +413,6 @@ async function fetchCities(stateId) {
                 styles={{
                   ...selectStyles,
                   option: (provided, state) => {
-                    // Highlight if option belongs to selected country
                     const isSelectedCountry = formData.countryIds.includes(state.data.countryId);
                     return {
                       ...provided,
@@ -485,7 +430,14 @@ async function fetchCities(stateId) {
                 closeMenuOnSelect={false}
                 isSearchable={true}
                 formatGroupLabel={group => (
-                  <div style={{ fontWeight: 700, color: '#fff', background: '#23293a', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  <div style={{
+                    fontWeight: 700,
+                    color: '#fff',
+                    background: '#23293a',
+                    padding: '4px 8px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}>
                     {group.label}
                   </div>
                 )}
@@ -512,7 +464,7 @@ async function fetchCities(stateId) {
                 <span className="error-text">{errors.cityIds}</span>
               )}
             </div>
-            {/* Status */}
+            {/* --- Status --- */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="status">Status <span style={{ color: "#ff5252" }}>*</span></label>
@@ -533,7 +485,7 @@ async function fetchCities(stateId) {
                 )}
               </div>
             </div>
-            {/* Established/Website/Contact */}
+            {/* --- Established/Website/Contact --- */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="establishedDate">Established Date</label>
@@ -638,50 +590,27 @@ async function fetchCities(stateId) {
       </div>
     </dialog>
   );
-};
-
-// ------------- PropTypes for all components -------------
+}
 CompanyModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  company: PropTypes.shape({
-    parentCompanyName: PropTypes.string,
-    subCompanyName: PropTypes.string,
-    legalName: PropTypes.string,
-    registrationNumber: PropTypes.string,
-    taxNumber: PropTypes.string,
-    industries: PropTypes.array,
-    industryIds: PropTypes.array,
-    establishedDate: PropTypes.string,
-    website: PropTypes.string,
-    email: PropTypes.string,
-    phone: PropTypes.string,
-    address1: PropTypes.string,
-    address2: PropTypes.string,
-    countryIds: PropTypes.array,
-    countryId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    stateIds: PropTypes.array,
-    stateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    cityIds: PropTypes.array,
-    cityId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    status: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  }),
+  company: PropTypes.object,
   onSave: PropTypes.func.isRequired,
   loading: PropTypes.bool,
   industries: PropTypes.array.isRequired,
 };
+// ========== Delete Modal ===========
 
-// ------------- DeleteConfirmCompanyModal -------------
-function DeleteConfirmCompanyModal({
+export function DeleteConfirmCompanyModal({
   isOpen,
   onClose,
   company,
   onDelete,
-  loading,
+  loading
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
   if (!isOpen || !company) return null;
-
+  
   const handleConfirm = async () => {
     setIsDeleting(true);
     await onDelete(company.id);
@@ -741,21 +670,7 @@ function DeleteConfirmCompanyModal({
     </dialog>
   );
 }
-
-DeleteConfirmCompanyModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  company: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    legalName: PropTypes.string,
-  }),
-  onDelete: PropTypes.func.isRequired,
-  loading: PropTypes.bool,
-};
-
-export { DeleteConfirmCompanyModal };
-
-// ------------- ViewCompanyModal -------------
+// ========== View Modal ==========
 export const ViewCompanyModal = ({ isOpen, onClose, company }) => {
   if (!isOpen || !company) return null;
   return (
@@ -814,8 +729,8 @@ export const ViewCompanyModal = ({ isOpen, onClose, company }) => {
       </div>
     </dialog>
   );
-};
 
+};
 ViewCompanyModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
@@ -823,9 +738,6 @@ ViewCompanyModal.propTypes = {
     legalName: PropTypes.string,
     registrationNumber: PropTypes.string,
     status: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-  }),
+
+  })
 };
-
-
-
-
