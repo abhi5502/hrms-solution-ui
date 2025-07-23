@@ -7,6 +7,7 @@ import { Role } from "../Role/role";
 import { Permission } from "../Permission/permission";
 import { Module } from "../Module/module";
 import { Country } from "../Country/country";
+import { Company } from "../Company/company";
 import { State } from "../State/state";
 import { City } from "../City/city";
 import Login from "./Login/Login";
@@ -56,6 +57,10 @@ export const RouteHandler = () => {
           {
             path: "/modules",
             element: <Module />,
+          },
+          {
+            path: "/company",
+            element: <Company />,
           },
           {
             path: "/countries",

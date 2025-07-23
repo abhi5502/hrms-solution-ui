@@ -1,5 +1,6 @@
 // API Configuration - Centralized API endpoints
 
+
 // Base API URL
 const BASE_API_URL = "https://localhost:7777/gateway";
 
@@ -71,6 +72,14 @@ MODULES: {
     UPDATE: `${BASE_API_URL}/City/city-update`,
     DELETE: (id) => `${BASE_API_URL}/City/city-delete/${id}`,
     GET_BY_ID: (id) => `${BASE_API_URL}/City/get-city-by-id/${id}`,
+  },
+
+  Company: {
+    GET_ALL: `${BASE_API_URL}/Company/get-all-company`,
+    CREATE: `${BASE_API_URL}/Company/company-create`,
+    UPDATE: `${BASE_API_URL}/Company/company-update`,
+    DELETE: (id) => `${BASE_API_URL}/Company/company-delete/${id}`,
+    GET_BY_ID: (id) => `${BASE_API_URL}/Company/get-company-by-id/${id}`,
   }
 };
 
